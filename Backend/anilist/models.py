@@ -24,5 +24,5 @@ class Anime(models.Model):
     show_id = models.IntegerField()
     title = models.CharField(max_length=300)
     alt_title = models.JSONField()
-    status = models.CharField(max_length=3, choice=STATUS, default=NOT_YET_RELEASED)
+    status = models.CharField(max_length=3, choices=STATUS, default=NOT_YET_RELEASED)
     last_watched_episode = models.SmallIntegerField()
