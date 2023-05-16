@@ -1,7 +1,12 @@
 /anisync-venv
 Backend/db.sqlite3
-
 __init__.py
+*.pyc
+__pycache__
+db.sqlite3
+/env
+*.env
+.vscode
 
 Backend/anilist/__pycache__
 Backend/anilist/migrations
