@@ -1,0 +1,13 @@
+/anisync-venv
+Backend/db.sqlite3
+
+__init__.py
+
+Backend/anilist/__pycache__
+Backend/anilist/migrations
+
+Backend/Backend/__pycache__
+Backend/Backend/migrations
+
+Backend/transmission/__pycache__
+Backend/transmission/migrations
