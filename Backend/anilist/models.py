@@ -8,7 +8,7 @@ HIATUS = "HIA"
 
 STATUS = [
 ("FIN", "FINISHED"),
-("REL", "RELEASED"),
+("REL", "RELEASING"),
 ("NYR", "NOT_YET_RELEASED"),
 ("CAN", "CANCELLED"),
 ("HIA", "HIATUS"),
@@ -26,6 +26,9 @@ class Anime(models.Model):
 
     def convert_status_to_db(long_value):
         return [status for status in STATUS if status[1] == long_value][0][0]
+    
+    def __str__(self):
+        return f"{self.title}"
 
 class User_Anime(models.Model):
     class Meta:

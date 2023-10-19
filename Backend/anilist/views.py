@@ -38,34 +38,36 @@ class AnimeList(APIView):
             # continue on
         except AniList_User.DoesNotExist:
             print("User DNE")
-            # create user
+            return Response("Bad Request", status=status.HTTP_400_BAD_REQUEST)
+        
+        status_list = []
+        if request.query_params.get('status_list') != None:
+            status_list = json.loads(request.query_params.get('status_list'))['statuses']
 
         #TODO change request to anilist_user.username
-        anime_list = retrieve_anilist(request.query_params.get('username'))
+        anime_list = retrieve_anilist(request.query_params.get('username'), status_list)
 
         (no_errors, serialized_ani_list) = create_anime_list_db_objects(anime_list)
-
-        # anime_list_serializer_var = anime_list_serializer(data=anime_list)
-        # if anime_list_serializer_var.is_valid():
-        #    anime_list_serializer_var.save()
-        # serializer = ani_list_serializer(request.data['user_name'])
-        # serializer.update(serializer, request.data['user_name'], anime_list)
-        # # if serializer.is_valid():
-        # # parse anime list into fields and then save
 
         if no_errors == True:
             return Response(serialized_ani_list, status=status.HTTP_200_OK)
         else: 
-            return Response("b", status=status.HTTP_400_BAD_REQUEST)
+            return Response("Bad Request", status=status.HTTP_400_BAD_REQUEST)
 
-def retrieve_anilist(user_name):
+def retrieve_anilist(user_name, status_list=[]):
     url = 'https://graphql.anilist.co'
 
-    listVariables = {
-    'userName'          : user_name,
-    'type'              : "ANIME",
-    'in_status_list'    : ["PAUSED"]
-    }
+    if status_list == []:
+        listVariables = {
+        'userName'          : user_name,
+        'type'              : "ANIME",
+        }
+    else:
+        listVariables = {
+        'userName'          : user_name,
+        'type'              : "ANIME",
+        'in_status_list'    : status_list
+        }
     
     animeListQuery = '''
     query getAnimeList ($userName : String, $type : MediaType, $in_status_list : [MediaListStatus]) {
