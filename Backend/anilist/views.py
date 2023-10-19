@@ -110,6 +110,9 @@ def create_anime_list_db_objects(animelist):
         #check if user_anime entry exists for user and this anime, if not create it
         #if user_anime exists, check if fields have changed (progress)
 
+        print(entry)
+        print('\n')
+
         new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_title', ['']), ('status', 'NYR')])
         
         new_anime['show_id'] = entry['mediaId']
@@ -131,6 +134,9 @@ def create_anime_list_db_objects(animelist):
                 no_errors = False
 
     return (no_errors, serialized_ani_list)
+
+def create_user_anime_db_objects():
+    pass
 
 def get_first_element_graphql_string(graphql_list):
     return graphql_list[1:-1]
