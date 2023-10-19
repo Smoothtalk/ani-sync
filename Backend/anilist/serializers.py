@@ -10,7 +10,7 @@ class anime_serializer(serializers.ModelSerializer):
     class Meta:
         model = Anime
         fields = '__all__'
-    
+
 class user_anime_serializer(serializers.ModelSerializer):
     class Meta:
         model = User_Anime

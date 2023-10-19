@@ -17,9 +17,12 @@ from bs4 import BeautifulSoup
 from graphql import parse, execute
 from graphql.language.printer import print_ast
 
+from collections import OrderedDict
+
 import requests
 import json
 import xml.etree.ElementTree as ET
+
 
 # Create your views here.
 
@@ -40,7 +43,7 @@ class AnimeList(APIView):
         #TODO change request to anilist_user.username
         anime_list = retrieve_anilist(request.query_params.get('username'))
 
-        create_anime_list_db_objects(anime_list)
+        (no_errors, serialized_ani_list) = create_anime_list_db_objects(anime_list)
 
         # anime_list_serializer_var = anime_list_serializer(data=anime_list)
         # if anime_list_serializer_var.is_valid():
@@ -49,8 +52,11 @@ class AnimeList(APIView):
         # serializer.update(serializer, request.data['user_name'], anime_list)
         # # if serializer.is_valid():
         # # parse anime list into fields and then save
-        return Response("a", status=status.HTTP_200_OK)
-    # return Response("b", status=status.HTTP_400_BAD_REQUEST)
+
+        if no_errors == True:
+            return Response(serialized_ani_list, status=status.HTTP_200_OK)
+        else: 
+            return Response("b", status=status.HTTP_400_BAD_REQUEST)
 
 def retrieve_anilist(user_name):
     url = 'https://graphql.anilist.co'
@@ -90,6 +96,9 @@ def retrieve_anilist(user_name):
 
 def create_anime_list_db_objects(animelist):
 
+    no_errors = True
+    serialized_ani_list = []
+
     result_object_list = json.loads(animelist)
 
     for entry in result_object_list:
@@ -98,10 +107,28 @@ def create_anime_list_db_objects(animelist):
 
         #check if user_anime entry exists for user and this anime, if not create it
         #if user_anime exists, check if fields have changed (progress)
-        print(entry)
-        print('\n')
 
-    return True
+        new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_title', ['']), ('status', 'NYR')])
+        
+        new_anime['show_id'] = entry['mediaId']
+        new_anime['title'] = entry['media']['title']['romaji']
+        new_anime['status'] = Anime.convert_status_to_db(entry['media']['status'])
+
+        #check of synonyms exist for anime 
+        if(len(entry['media']['synonyms']) != 0):
+            new_anime['alt_title'] = entry['media']['synonyms']
+            new_anime['alt_title'].append(entry['media']['title']['english'])
+
+        serializer = anime_serializer(data=new_anime)
+        if serializer.is_valid():
+            serialized_ani_list.append(new_anime)
+            serializer.save()
+        else:
+            serialized_ani_list.append(new_anime)
+            if 'already exists' not in serializer.errors['show_id'][0]:
+                no_errors = False
+
+    return (no_errors, serialized_ani_list)
 
 def get_first_element_graphql_string(graphql_list):
     return graphql_list[1:-1]
