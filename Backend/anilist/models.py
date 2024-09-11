@@ -16,11 +16,18 @@ STATUS = [
 
 # Create your models here.
 class AniList_User(models.Model):
-    anilist_user_name = models.CharField(max_length=200)
+    user_name = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.user_name}"
+    
+    class Meta:
+        verbose_name = 'AniList_User'
+        verbose_name_plural = 'AniList_Users'
 
 class Anime(models.Model):
     show_id = models.IntegerField(primary_key=True)
-    title = models.CharField(max_length=300)
+    title = models.CharField(max_length=1000)
     alt_title = models.JSONField(blank=True)
     status = models.CharField(max_length=3, choices=STATUS, default=NOT_YET_RELEASED)
 
@@ -38,3 +45,7 @@ class User_Anime(models.Model):
     show_id = models.ForeignKey("Anime", on_delete=models.CASCADE)
     custom_titles = models.JSONField()
     last_watched_episode = models.SmallIntegerField()
+
+    class Meta:
+        verbose_name = 'User_Anime'
+        verbose_name_plural = 'User_Animes'
