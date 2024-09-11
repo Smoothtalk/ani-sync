@@ -1,0 +1,8 @@
+django=5.1.1
+django-environ
+djangorestframework
+psycopg2
+bs4
+cython
+graphene
+request
