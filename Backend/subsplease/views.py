@@ -44,9 +44,9 @@ class SubsPlease(APIView):
             feed = feedparser.parse(url.feed_url)
             print("Status of RSS Feed: " + str(feed.status))
             releases = feed.get('entries')
-            create_releases_db_objects(releases)
+            serialized_releases = create_releases_db_objects(releases)
 
-        return Response("Test", status=status.HTTP_200_OK)
+        return Response(serialized_releases, status=status.HTTP_200_OK)
     
 def create_releases_db_objects(releases_str):
     # Add new releases to db
@@ -74,10 +74,12 @@ def create_releases_db_objects(releases_str):
 
             if serializer.is_valid() and not existing_entry:
                 serialized_releases.append(new_release)
-                serializer.save()
+                # serializer.save()
             elif len(serializer.errors) > 0:
                 if 'guid' in serializer.errors.keys() and 'already exists' not in serializer.errors['guid'][0]:
                     pass
+    
+    return serialized_releases
 
 def convert_datetime(date_time_str):
     date_format = "%a, %d %b %Y %H:%M:%S %z"
