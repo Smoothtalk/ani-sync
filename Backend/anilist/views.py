@@ -115,7 +115,7 @@ def create_anime_list_db_objects(anime_list):
 
             # print(json.dumps(entry, indent=4))
 
-            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', ['']), ('status', 'NYR')])
+            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', ['']), ('status', 'NYR'), ('subsplease_releases', None)])
             
             new_anime['show_id'] = entry['mediaId']
             new_anime['title'] = entry['media']['title']['romaji']
@@ -142,8 +142,11 @@ def create_anime_list_db_objects(anime_list):
                 serialized_ani_list.append(new_anime)
                 serializer.save()
             else:
-                if 'already exists' not in serializer.errors['show_id'][0]:
+                if 'show_id' in serializer.errors.keys() and 'already exists' not in serializer.errors['show_id'][0]:
                     no_errors = False
+                else:
+                    print(serializer.errors)
+
 
     return (no_errors, serialized_ani_list)
 
