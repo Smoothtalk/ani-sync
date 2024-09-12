@@ -115,23 +115,33 @@ def create_anime_list_db_objects(anime_list):
 
             # print(json.dumps(entry, indent=4))
 
-            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_title', ['']), ('status', 'NYR')])
+            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', ['']), ('status', 'NYR')])
             
             new_anime['show_id'] = entry['mediaId']
             new_anime['title'] = entry['media']['title']['romaji']
             new_anime['status'] = Anime.convert_status_to_db(entry['media']['status'])
 
+            # TODO debugging clutter, remove later
+            # if(new_anime['show_id'] == 169441):
+            #     print('x')
+            # if(type(entry['media']['title']['english']) is None):
+            #     print('x')
+
             #check of synonyms exist for anime 
-            if(len(entry['media']['synonyms']) != 0):
-                new_anime['alt_title'] = entry['media']['synonyms']
-                new_anime['alt_title'].append(entry['media']['title']['english'])
+            if(len(entry['media']['synonyms']) > 0):
+                new_anime['alt_titles'] = entry['media']['synonyms']
+
+            if(entry['media']['title']['english'] is not None and len(entry['media']['title']['english']) > 0):
+                new_anime['alt_titles'] = entry['media']['title']['english']
 
             serializer = anime_serializer(data=new_anime)
-            if serializer.is_valid():
+
+            existing_entry = Anime.objects.filter(show_id=new_anime['show_id']).exists()
+
+            if serializer.is_valid() and not existing_entry:
                 serialized_ani_list.append(new_anime)
                 serializer.save()
             else:
-                serialized_ani_list.append(new_anime)
                 if 'already exists' not in serializer.errors['show_id'][0]:
                     no_errors = False
 

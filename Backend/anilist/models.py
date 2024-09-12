@@ -45,8 +45,9 @@ class AniList_User(models.Model):
 class Anime(models.Model):
     show_id = models.IntegerField(primary_key=True)
     title = models.CharField(max_length=1000)
-    alt_title = models.JSONField(blank=True)
+    alt_titles = models.JSONField(default=list, blank=True, null=False)
     status = models.CharField(max_length=3, choices=AIRING_STATUS, default=NOT_YET_RELEASED)
+    subsplease_releases = models.ForeignKey("subsplease.Release", on_delete=models.CASCADE, null=True, blank=True)
 
     def convert_status_to_db(long_value):
         return [status for status in AIRING_STATUS if status[1] == long_value][0][0]

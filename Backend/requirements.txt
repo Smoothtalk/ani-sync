@@ -6,3 +6,5 @@ bs4
 cython
 graphene
 request
+feedparser
+fuzzywuzzy
