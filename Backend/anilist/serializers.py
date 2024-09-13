@@ -13,6 +13,7 @@ class anime_serializer(serializers.ModelSerializer):
 
 class user_anime_serializer(serializers.ModelSerializer):
     anime_title = serializers.CharField(source='show_id.title')
+    watcher = serializers.CharField(source='watcher.user_name')
     anime_status = serializers.SerializerMethodField()
     watching_status = serializers.SerializerMethodField()
     
