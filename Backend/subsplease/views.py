@@ -47,7 +47,7 @@ class SubsPlease(APIView):
             releases = feed.get('entries')
             serialized_releases = create_releases_db_objects(releases)
 
-        return Response(serialized_releases, status=status.HTTP_200_OK)
+        return Response(serialized_releases.data, status=status.HTTP_200_OK)
     
 def create_releases_db_objects(releases_str):
     # Add new releases to db
@@ -68,22 +68,24 @@ def create_releases_db_objects(releases_str):
         # add to Anilist_anime here
         anilist_id = find_anilist_showid_from_title(simple_title, anime_titles)
         if(type(anilist_id) is int):
-            new_release['anime'] = anilist_id
+            anime_obj = get_anime_obj_from_anilist_id(anilist_id)
+            new_release['anime'] = anime_obj
     
             serializer = release_serializer(data=new_release)
 
             existing_entry = Release.objects.filter(guid=new_release['guid']).exists()
 
             if serializer.is_valid():
-                releases_arr.append(new_release)            
                 if not existing_entry:
                     serialized_releases.append(new_release)
                     serializer.save()
             elif len(serializer.errors) > 0:
                 if 'guid' in serializer.errors.keys() and 'already exists' not in serializer.errors['guid'][0]:
                     pass
+            
+            releases_arr.append(new_release)            
     
-    return releases_arr
+    return release_serializer(releases_arr, many=True)
 
 def convert_datetime(date_time_str):
     date_format = "%a, %d %b %Y %H:%M:%S %z"
@@ -117,6 +119,9 @@ def find_anilist_showid_from_title(release_title, anime_titles):
                 return user_anime_obj.get().show_id_id
             else:
                 return user_anime_obj
+
+def get_anime_obj_from_anilist_id(anilist_id):
+    return Anime.objects.get(show_id=anilist_id)
 
 def get_all_cur_pln_titles():
     anime_titles = []

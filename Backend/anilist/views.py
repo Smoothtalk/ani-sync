@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Case, When, Value, IntegerField
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -54,10 +55,14 @@ class AnimeList(APIView):
         (no_errors, serialized_ani_list) = create_anime_list_db_objects(anime_list)
         create_user_anime_db_objects(anime_list, anilist_user)
 
-        if no_errors == True:
-            return Response(serialized_ani_list, status=status.HTTP_200_OK)
-        else: 
-            return Response("Bad Request", status=status.HTTP_400_BAD_REQUEST)
+        user_anime_list = user_anime_serializer(get_anime_list_from_db(anilist_user), many=True)
+
+        return Response(user_anime_list.data, status=status.HTTP_200_OK)
+
+        # if no_errors == True:
+        #     return Response(user_anime_list, status=status.HTTP_200_OK)
+        # else: 
+        #     return Response("Bad Request", status=status.HTTP_400_BAD_REQUEST)
 
 def retrieve_anilist(user_name, status=''):
     url = 'https://graphql.anilist.co'
@@ -148,10 +153,8 @@ def create_anime_list_db_objects(anime_list):
                 serialized_ani_list.append(new_anime)
                 serializer.save()
             else:
-                if 'show_id' in serializer.errors.keys() and 'already exists' not in serializer.errors['show_id'][0]:
+                if len(serializer.errors.keys()) > 0:
                     no_errors = False
-                else:
-                    print(serializer.errors)
 
 
     return (no_errors, serialized_ani_list)
@@ -180,11 +183,22 @@ def create_user_anime_db_objects(anime_list, anilist_user_str):
             if serializer.is_valid() and not existing_entry:
                 serialized_user_anime.append(new_user_anime)
                 serializer.save()
-            elif len(serializer.errors) > 0:
-                print(serializer.errors)
 
 def get_first_element_graphql_string(graphql_list):
     return graphql_list[1:-1]
 
 def get_anime_list_from_db(anilist_user_str):
-    pass
+    custom_order = Case(
+        When(watching_status='CUR', then=Value(1)),
+        When(watching_status='PLN', then=Value(2)),
+        When(watching_status='CPL', then=Value(3)),
+        When(watching_status='DRP', then=Value(4)),
+        When(watching_status='PAU', then=Value(5)),
+        When(watching_status='RPR', then=Value(6)),
+        output_field=IntegerField()
+    )
+
+    return User_Anime.objects.filter(
+        watcher=anilist_user_str).annotate(
+        custom_order=custom_order).order_by(
+        'custom_order')
