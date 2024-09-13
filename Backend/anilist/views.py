@@ -44,8 +44,11 @@ class AnimeList(APIView):
             anime_status = request.query_params.get('status')
 
         #TODO change request to anilist_user.username
-        anime_list = json.loads(retrieve_anilist(request.query_params.get('username'), anime_status))
-        
+        anime_list = retrieve_anilist(request.query_params.get('username'), anime_status)
+        if(anime_list != ''):
+            anime_list = json.loads(anime_list)
+            no_errors = False
+
         # print(json.dumps(anime_list, indent=4))
         
         (no_errors, serialized_ani_list) = create_anime_list_db_objects(anime_list)
@@ -94,8 +97,11 @@ def retrieve_anilist(user_name, status=''):
 
     response = requests.post(url, json={'query': animeListQuery, 'variables': listVariables})
     # prettySoup = json.dumps(response.json()['data']['MediaListCollection']['lists'], indent=4)
-
-    return json.dumps(response.json()['data']['MediaListCollection']['lists'])
+    # TODO change this to the success code
+    if(response.status_code != 403):
+        return json.dumps(response.json()['data']['MediaListCollection']['lists'])
+    else:
+        return ''    
 
 def create_anime_list_db_objects(anime_list):
 
@@ -180,3 +186,5 @@ def create_user_anime_db_objects(anime_list, anilist_user_str):
 def get_first_element_graphql_string(graphql_list):
     return graphql_list[1:-1]
 
+def get_anime_list_from_db(anilist_user_str):
+    pass

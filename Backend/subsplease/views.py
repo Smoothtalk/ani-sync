@@ -40,6 +40,7 @@ class SubsPlease(APIView):
         # TODO try catch here for failure, table empty & DNE
         urls = Url.objects.all()
 
+        # TODO implement some sort of caching
         for url in urls:
             feed = feedparser.parse(url.feed_url)
             print("Status of RSS Feed: " + str(feed.status))
@@ -55,6 +56,7 @@ def create_releases_db_objects(releases_str):
     # print(json.dumps(releases_str, indent=2))
 
     serialized_releases = []
+    releases_arr = []
     anime_titles = get_all_cur_pln_titles()
 
     for release in releases_str:
@@ -72,14 +74,16 @@ def create_releases_db_objects(releases_str):
 
             existing_entry = Release.objects.filter(guid=new_release['guid']).exists()
 
-            if serializer.is_valid() and not existing_entry:
-                serialized_releases.append(new_release)
-                # serializer.save()
+            if serializer.is_valid():
+                releases_arr.append(new_release)            
+                if not existing_entry:
+                    serialized_releases.append(new_release)
+                    serializer.save()
             elif len(serializer.errors) > 0:
                 if 'guid' in serializer.errors.keys() and 'already exists' not in serializer.errors['guid'][0]:
                     pass
     
-    return serialized_releases
+    return releases_arr
 
 def convert_datetime(date_time_str):
     date_format = "%a, %d %b %Y %H:%M:%S %z"
