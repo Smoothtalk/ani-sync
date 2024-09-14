@@ -10,8 +10,8 @@ from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from anilist.models import AniList_User, Anime, User_Anime
-from anilist.serializers import anilist_user_serializer, anime_serializer, user_anime_serializer
+from anilist.models import *
+from anilist.serializers import anime_serializer, user_anime_serializer
 
 from bs4 import BeautifulSoup
 

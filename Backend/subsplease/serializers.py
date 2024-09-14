@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from subsplease.models import *
 from anilist.models import *
-
+from anilist.serializers import anime_serializer
 
 class url_serializer(serializers.ModelSerializer):
     class Meta:
@@ -9,9 +9,8 @@ class url_serializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class release_serializer(serializers.ModelSerializer):
-    anime_title = serializers.CharField(source='anime.title')
-
+    anime = serializers.PrimaryKeyRelatedField(queryset=Anime.objects.all())
+    
     class Meta:
         model = Release
-        fields = ['anime_title', 'full_title', 'link', 'guid', 'pub_date'] 
-
+        fields = ['full_title', 'link', 'guid', 'pub_date', 'simple_title', 'anime']

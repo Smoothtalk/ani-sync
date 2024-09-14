@@ -47,7 +47,7 @@ class SubsPlease(APIView):
             releases = feed.get('entries')
             serialized_releases = create_releases_db_objects(releases)
 
-        return Response(serialized_releases.data, status=status.HTTP_200_OK)
+        return Response(serialized_releases, status=status.HTTP_200_OK)
     
 def create_releases_db_objects(releases_str):
     # Add new releases to db
@@ -63,29 +63,33 @@ def create_releases_db_objects(releases_str):
         simple_title = trim_simple_title(release['tags'][0]['term'])
         django_datetime = convert_datetime(release['published'])
 
-        new_release = OrderedDict([('full_title', release['title']), ('link', release['link']), ('guid', release['id']), ('pub_date', django_datetime), ('simple_title', simple_title), ('anime', None)])
+        new_release = OrderedDict([('full_title', release['title']), ('link', release['link']), ('guid', release['id']), ('pub_date', django_datetime), ('simple_title', simple_title)])
         
         # add to Anilist_anime here
         anilist_id = find_anilist_showid_from_title(simple_title, anime_titles)
-        if(type(anilist_id) is int):
+
+        if(isinstance(anilist_id, int)):
             anime_obj = get_anime_obj_from_anilist_id(anilist_id)
-            new_release['anime'] = anime_obj
+            new_release['anime'] = anime_obj.pk  # Set to the primary key
     
             serializer = release_serializer(data=new_release)
 
             existing_entry = Release.objects.filter(guid=new_release['guid']).exists()
-
+            
             if serializer.is_valid():
+                # print(new_release['simple_title'])
                 if not existing_entry:
                     serialized_releases.append(new_release)
                     serializer.save()
-            elif len(serializer.errors) > 0:
-                if 'guid' in serializer.errors.keys() and 'already exists' not in serializer.errors['guid'][0]:
-                    pass
+            else:
+                print(serializer.errors)
+            # elif len(serializer.errors) > 0:
+            #     if 'already exists' not in list(serializer.errors.values())[0][0]:
+            #         print(serializer.errors)
             
             releases_arr.append(new_release)            
-    
-    return release_serializer(releases_arr, many=True)
+
+    return serialized_releases
 
 def convert_datetime(date_time_str):
     date_format = "%a, %d %b %Y %H:%M:%S %z"
@@ -109,7 +113,7 @@ def find_anilist_showid_from_title(release_title, anime_titles):
 
     for anime_title in anime_titles:
         if(fuzz.ratio(anime_title.lower(), release_title) > FUZZ_RATIO):
-            # print("Match with - Anime Title: " + anime_title + " and release title: " + release_title)
+            print("Match with - Anime Title: " + anime_title + " and release title: " + release_title)
 
             # Need to use user_anime because there may be a match with a custom title and that may not match with any alt title
             # then once we get the user_anime, we can then get the anime using a join from show_id
@@ -126,9 +130,9 @@ def get_anime_obj_from_anilist_id(anilist_id):
 def get_all_cur_pln_titles():
     anime_titles = []
 
-    # get titles
-    user_anime_cur_pln_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN')))
-    
+    # get titles, include currently watching and planning to watch, exclude already finished anime
+    user_anime_cur_pln_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN'))).exclude(show_id__status='FIN')
+
     # since title is always one, simple make a list from that
     anime_titles = [user_anime.show_id.title for user_anime in user_anime_cur_pln_titles]
 

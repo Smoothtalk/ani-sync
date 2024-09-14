@@ -8,3 +8,4 @@ graphene
 request
 feedparser
 fuzzywuzzy
+transmissionrpc
