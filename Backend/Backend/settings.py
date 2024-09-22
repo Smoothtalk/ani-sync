@@ -64,7 +64,7 @@ Q_CLUSTER = {
     'name': 'DjangoQCluster',
     'max_threads': 4,
     'poll_delay': 1,
-    'timeout': None,
+    'timeout': 300,
     'retry': 600,
     'orm': 'default',
 }
