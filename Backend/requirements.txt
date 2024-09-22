@@ -9,7 +9,7 @@ graphene
 requests
 feedparser
 levenshtein
-transmissionrpc
+transmission_rpc
 paramiko
 cryptography
 py-cord
