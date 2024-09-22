@@ -9,13 +9,7 @@ db.sqlite3
 *.log
 .vscode
 
-Backend/anilist/__pycache__
-Backend/anilist/migrations
-
-Backend/Backend/__pycache__
-Backend/Backend/migrations
-
-Backend/transmission/__pycache__
-Backend/transmission/migrations
+migrations/
+__pycache__/
 AniSync.code-workspace
 /Backend/ssh_keys
