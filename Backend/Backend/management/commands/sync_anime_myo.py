@@ -29,7 +29,7 @@ class Command(BaseCommand):
         # data3 = response3.json()
 
         for download in download_data:            
-            self.stdout.write(self.style.SUCCESS(f'Synced {download['release_title']} to Myo successfully'))
+            self.stdout.write(self.style.SUCCESS(f'Synced {download["release_title"]} to Myo successfully'))
         
         self.stdout.write(self.style.SUCCESS('Completed fetching'))
 
