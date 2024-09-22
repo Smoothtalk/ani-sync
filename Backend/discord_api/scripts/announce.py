@@ -39,7 +39,7 @@ async def on_ready():
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: python announce.py [token] [anime title] [discord user id]")
+        print("Usage: 3 announce.py [token] [anime title] [discord user id]")
         sys.exit(1)
     token = sys.argv[1]
     if token:

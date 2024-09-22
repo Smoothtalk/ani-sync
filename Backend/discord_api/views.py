@@ -48,7 +48,7 @@ class Discord_Class(APIView):
                 activate_script = os.path.join("../anisync-venv", 'bin', 'activate')
 
             # Build the command to source the venv and run the script
-            command = [activate_script, '&&', 'python', 'discord_api/scripts/announce.py', discord_obj.discord_bot_token, anime_title_with_quotes, anilist_obj.discord_user_id]
+            command = [activate_script, '&&', 'python3', 'discord_api/scripts/announce.py', discord_obj.discord_bot_token, anime_title_with_quotes, anilist_obj.discord_user_id]
             # print("command: " + ' '.join(command))
 
             # Create a subprocess to execute the command in a shell
