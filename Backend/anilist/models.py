@@ -71,17 +71,17 @@ class User_Anime(models.Model):
     def __str__(self):
         match self.watching_status:
             case "CUR":
-                return f"{str(self.watcher) + " is watching " + str(self.show_id)}"
+                return f"{str(self.watcher)} is watching {str(self.show_id)}"
             case "PLN":
-                return f"{str(self.watcher) + " is planning to watch " + str(self.show_id)}"
+                return f"{str(self.watcher)} is planning to watch {str(self.show_id)}"
             case "CPL":
-                return f"{str(self.watcher) + " has completed watching " + str(self.show_id)}"
+                return f"{str(self.watcher)} has completed watching {str(self.show_id)}"
             case "DRP":
-                return f"{str(self.watcher) + " has dropped watching " + str(self.show_id)}"
+                return f"{str(self.watcher)} has dropped watching {(self.show_id)}"
             case "PAU":
-                return f"{str(self.watcher) + " has paused watching " + str(self.show_id)}"
+                return f"{str(self.watcher)} has paused watching {(self.show_id)}"
             case "RPR":
-                return f"{str(self.watcher) + " is repeat watching " + str(self.show_id)}"
+                return f"{str(self.watcher)} is repeat watching {(self.show_id)}"
 
 
     class Meta:
