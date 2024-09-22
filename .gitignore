@@ -12,4 +12,5 @@ db.sqlite3
 migrations/
 __pycache__/
 AniSync.code-workspace
+ani-sync.code-workspace
 /Backend/ssh_keys
