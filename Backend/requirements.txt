@@ -1,7 +1,8 @@
 django==5.1.1
+setuptools
+wheel
 django-environ
 djangorestframework
-psycopg2
 bs4
 cython
 graphene
@@ -18,5 +19,5 @@ cchardet
 msgspec
 httpx
 adrf
-setuptools
 django-q2
+psycopg2
