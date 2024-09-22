@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ["localhost", "192.168.3.1", "127.0.0.1"]
 # Application definition
 
 INSTALLED_APPS = [
+    "adrf",
     "anilist",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -39,8 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_q',
     'rest_framework',
     'Backend',
+    'discord_api',
     'subsplease',
     'transmission'
 ]
@@ -56,6 +59,15 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'Backend.urls'
+
+Q_CLUSTER = {
+    'name': 'DjangoQCluster',
+    'max_threads': 4,
+    'poll_delay': 1,
+    'timeout': None,
+    'retry': 600,
+    'orm': 'default',
+}
 
 TEMPLATES = [
     {
@@ -90,6 +102,21 @@ DATABASES = {
     }
 }
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django_q': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
