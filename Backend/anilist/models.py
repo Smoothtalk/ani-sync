@@ -34,6 +34,7 @@ WATCHING_STATUS = [
 # Create your models here.
 class AniList_User(models.Model):
     user_name = models.CharField(max_length=200)
+    discord_user_id = models.CharField(max_length=32, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user_name}"

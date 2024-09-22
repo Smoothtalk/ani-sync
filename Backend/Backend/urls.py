@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("transmission/", include("transmission.urls")),    
     path("anilist/", include("anilist.urls")),
-    path("subsplease/", include("subsplease.urls")),    
+    path("subsplease/", include("subsplease.urls")),
+    path("discord_api/", include("discord_api.urls"))    
 ]
