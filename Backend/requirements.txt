@@ -7,5 +7,16 @@ cython
 graphene
 request
 feedparser
-fuzzywuzzy
+levenshtein
 transmissionrpc
+paramiko
+cryptography
+py-cord
+aiodns
+brotlipy
+cchardet
+msgspec
+httpx
+adrf
+setuptools
+django-q2
