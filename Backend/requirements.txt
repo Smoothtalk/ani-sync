@@ -5,7 +5,7 @@ psycopg2
 bs4
 cython
 graphene
-request
+requests
 feedparser
 levenshtein
 transmissionrpc
