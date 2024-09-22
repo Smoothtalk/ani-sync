@@ -1,15 +1,14 @@
 import feedparser
-import json
 import itertools
-from fuzzywuzzy import fuzz
+from Levenshtein import ratio
 from subsplease.models import *
 from subsplease.serializers import release_serializer
 from anilist.models import User_Anime, Anime
-from anilist.serializers import anime_serializer
 
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -81,22 +80,17 @@ def create_releases_db_objects(releases_str):
                 if not existing_entry:
                     serialized_releases.append(new_release)
                     serializer.save()
-            else:
-                print(serializer.errors)
-            # elif len(serializer.errors) > 0:
-            #     if 'already exists' not in list(serializer.errors.values())[0][0]:
-            #         print(serializer.errors)
             
-            releases_arr.append(new_release)            
+            releases_arr.append(new_release)   
 
-    return serialized_releases
+    return releases_arr
 
 def convert_datetime(date_time_str):
     date_format = "%a, %d %b %Y %H:%M:%S %z"
 
     date_obj = datetime.strptime(date_time_str, date_format)
-
-    return date_obj
+    local_dt = timezone.localtime(date_obj)
+    return local_dt
 
 def trim_simple_title(simple_title):
     trimmed_string, _, _ = simple_title.rpartition(' - ')
@@ -112,8 +106,8 @@ def find_anilist_showid_from_title(release_title, anime_titles):
     release_title = release_title.lower()
 
     for anime_title in anime_titles:
-        if(fuzz.ratio(anime_title.lower(), release_title) > FUZZ_RATIO):
-            print("Match with - Anime Title: " + anime_title + " and release title: " + release_title)
+        if(ratio(anime_title.lower(), release_title, score_cutoff=(FUZZ_RATIO / 100)) != 0.0):
+            # print("Match with - Anime Title: " + anime_title + " and release title: " + release_title)
 
             # Need to use user_anime because there may be a match with a custom title and that may not match with any alt title
             # then once we get the user_anime, we can then get the anime using a join from show_id
