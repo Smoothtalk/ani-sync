@@ -32,7 +32,7 @@ class Command(BaseCommand):
 
         try:
             # Create database
-            cursor.execute(f"CREATE DATABASE {db_name} WITH ENCODING 'UTF8';")
+            cursor.execute(f"CREATE DATABASE {db_name} WITH ENCODING 'UTF8' TEMPLATE template0;")
             self.stdout.write(f"Database '{db_name}' created successfully.")
         except psycopg2.errors.DuplicateDatabase:
             self.stdout.write(f"Database '{db_name}' already exists.")
