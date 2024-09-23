@@ -16,7 +16,7 @@ REPEATING = "RPR"
 AIRING_STATUS = [
 ("FIN", "FINISHED"),
 ("REL", "RELEASING"),
-("NYR", "NOT_YET_RELEASED"),
+("NYR", "NOT YET RELEASED"),
 ("CAN", "CANCELLED"),
 ("HIA", "HIATUS"),
 ]
@@ -52,6 +52,9 @@ class Anime(models.Model):
     def convert_status_to_db(long_value):
         return [status for status in AIRING_STATUS if status[1] == long_value][0][0]
     
+    def convert_status_from_db(short_value):
+        return [status for status in AIRING_STATUS if status[0] == short_value][0][1]
+    
     def __str__(self):
         return f"{self.title}"
 
@@ -70,7 +73,13 @@ class User_Anime(models.Model):
             if status[1] == long_value:
                 return status[0]
         raise ValueError(f"Invalid status: {long_value}")
-
+    
+    def convert_status_from_db(short_value):
+        for status in WATCHING_STATUS:
+            if status[0] == short_value:
+                return status[1]
+        raise ValueError(f"Invalid status: {short_value}")
+            
     def __str__(self):
         match self.watching_status:
             case "CUR":
