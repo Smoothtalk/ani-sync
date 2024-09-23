@@ -51,7 +51,7 @@ class Discord_Class(APIView):
             else:
                 # Run the Python interpreter directly from the virtual environment
                 venv_python = os.path.join("anisync-venv", 'bin', 'python3')
-                command = [venv_python, 'Backend/discord_api/scripts/announce.py', discord_obj.discord_bot_token, anime_title_with_quotes, anilist_obj.discord_user_id]
+                command = [venv_python, 'discord_api/scripts/announce.py', discord_obj.discord_bot_token, anime_title_with_quotes, anilist_obj.discord_user_id]
 
 
             # Create a subprocess to execute the command in a shell
