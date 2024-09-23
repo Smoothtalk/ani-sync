@@ -42,37 +42,44 @@ class Discord_Class(APIView):
         
         try:
             print("Current Working Dir: " + os.getcwd())
-            if platform.system() == 'Windows':
-                activate_script = os.path.join(r'..\anisync-venv' , 'Scripts', 'activate.bat')
-            else:
-                activate_script = os.path.join("../anisync-venv", 'bin', 'activate')
+            windows = platform.system() == 'Windows'
 
-            # Build the command to source the venv and run the script
-            command = [activate_script, '&&', 'python3', 'discord_api/scripts/announce.py', discord_obj.discord_bot_token, anime_title_with_quotes, anilist_obj.discord_user_id]
-            # print("command: " + ' '.join(command))
+            # TODO retest on windows
+            if windows:
+                activate_script = os.path.join(r'..\anisync-venv' , 'Scripts', 'activate.bat')
+                command = ['cmd.exe', '/c', activate_script, '&&', 'python', 'discord_api/scripts/announce.py', discord_obj.discord_bot_token, anime_title_with_quotes, anilist_obj.discord_user_id]
+            else:
+                # Run the Python interpreter directly from the virtual environment
+                venv_python = os.path.join("anisync-venv", 'bin', 'python3')
+                command = [venv_python, 'Backend/discord_api/scripts/announce.py', discord_obj.discord_bot_token, anime_title_with_quotes, anilist_obj.discord_user_id]
+
 
             # Create a subprocess to execute the command in a shell
-            process = subprocess.Popen(' '.join(command) if platform.system() == 'Windows' else command, 
-                                    shell=True, 
+            process = subprocess.run(' '.join(command) if platform.system() == 'Windows' else command, 
+                                    check=True,
+                                    shell=windows,
                                     stdout=subprocess.PIPE, 
-                                    stderr=subprocess.PIPE)
+                                    stderr=subprocess.PIPE,
+                                    )
 
             # Capture and print the output
-            stdout, stderr = process.communicate()
-            print(stdout.decode())
-            if stderr:
-                print("Error:", stderr.decode())
+            # stdout, stderr = process.communicate()
+            print(process.stdout.decode())
+            if process.stderr:
+                print("Error:", process.stderr.decode())
 
             # backup way
             # command = venv_path
             # process = subprocess.call(command, shell=True)
 
-            # command = "python Backend/discord_api/scripts/announce.py \"" + discord_obj.discord_bot_token + "\"" + " \"" + anime_title_with_episode_num + "\" \"" + anilist_obj.discord_user_id + "\"" 
+            # command = "python3 Backend/discord_api/scripts/announce.py \"" + discord_obj.discord_bot_token + "\"" + " \"" + anime_title_with_episode_num + "\" \"" + anilist_obj.discord_user_id + "\"" 
             # process = subprocess.call(command, shell=True)
 
             return Response({"message": "Discord user notified successfully!"}, status=status.HTTP_200_OK)
         except Download.DoesNotExist:
             return Response({"error": "Torrent not found!"}, status=status.HTTP_404_NOT_FOUND)
+        except subprocess.TimeoutExpired:
+            return Response({"error": "The script timed out."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         
