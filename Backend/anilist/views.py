@@ -150,11 +150,19 @@ def create_anime_list_db_objects(anime_list):
 
             serializer = anime_serializer(data=new_anime)
 
-            existing_entry = Anime.objects.filter(show_id=new_anime['show_id']).exists()
+            try:
+                anime_db_entry = Anime.objects.get(show_id=new_anime['show_id'])
+            except User_Anime.DoesNotExist:
+                user_anime_db_entry = None
 
-            if serializer.is_valid() and not existing_entry:
+            if serializer.is_valid():
+                if anime_db_entry: #check if fields changed, update if needed
+                    if has_new_anime_fields_changed(new_anime, anime_db_entry):
+                        anime_db_entry.save()
+                else:
+                    serializer.save()
+            
                 serialized_ani_list.append(new_anime)
-                serializer.save()
             else:
                 if len(serializer.errors.keys()) > 0:
                     no_errors = False
@@ -179,12 +187,56 @@ def create_user_anime_db_objects(anime_list, anilist_user_str):
             new_user_anime = OrderedDict([('watcher', anilist_user), ('show_id', show_id), ('watching_status', status), ('custom_titles', []), ('last_watched_episode', entry['progress'])])
 
             serializer = user_anime_serializer(data=new_user_anime)
+            
+            try:
+                user_anime_db_entry = User_Anime.objects.get(watcher=anilist_user, show_id=show_id)
+            except User_Anime.DoesNotExist:
+                user_anime_db_entry = None
+            
+            if serializer.is_valid():
+                if user_anime_db_entry:
+                    if has_new_user_anime_fields_changed(new_user_anime, user_anime_db_entry):
+                        user_anime_db_entry.save()
+                else:
+                    serializer.save()
 
-            existing_entry = User_Anime.objects.filter(watcher=anilist_user, show_id=show_id).exists()
-
-            if serializer.is_valid() and not existing_entry:
                 serialized_user_anime.append(new_user_anime)
-                serializer.save()
+                
+# assuming that we can find the anime_obj in the 
+# this might be for optimization, since if nothing has changed we'd be saving every old entry again
+def has_new_anime_fields_changed(new_anime, anime_db_obj):
+    # Keep track of whether any fields have changed
+    has_changed = False
+
+    # Compare each field and update if necessary
+    if anime_db_obj.title != new_anime['title']:
+        anime_db_obj.title = new_anime['title']
+        has_changed = True
+    if anime_db_obj.status != new_anime['status']:
+        anime_db_obj.status = new_anime['status']
+        has_changed = True
+    if anime_db_obj.alt_titles != new_anime['alt_titles']:
+        anime_db_obj.alt_titles = new_anime['alt_titles']
+        has_changed = True
+    
+    return has_changed
+
+def has_new_user_anime_fields_changed(new_user_anime, user_anime_db_obj):
+    # Keep track of whether any fields have changed
+    has_changed = False
+
+    # Compare each field and update if necessary
+    if user_anime_db_obj.last_watched_episode != new_user_anime['last_watched_episode']:
+        user_anime_db_obj.last_watched_episode = new_user_anime['last_watched_episode']
+        has_changed = True
+    if user_anime_db_obj.watching_status != new_user_anime['watching_status']:
+        user_anime_db_obj.watching_status = new_user_anime['watching_status']
+        has_changed = True
+    if user_anime_db_obj.custom_titles != new_user_anime['custom_titles']:
+        user_anime_db_obj.custom_titles = new_user_anime['custom_titles']
+        has_changed = True
+    
+    return has_changed
 
 def get_first_element_graphql_string(graphql_list):
     return graphql_list[1:-1]
