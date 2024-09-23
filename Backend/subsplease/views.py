@@ -110,8 +110,32 @@ def find_anilist_showid_from_title(release_title, anime_titles):
             # print("Match with - Anime Title: " + anime_title + " and release title: " + release_title)
 
             # Need to use user_anime because there may be a match with a custom title and that may not match with any alt title
-            # then once we get the user_anime, we can then get the anime using a join from show_id
-            user_anime_obj = User_Anime.objects.filter((Q(custom_titles__icontains=anime_title) | Q(show_id__title=anime_title)))
+            # then once we get the user_anime, we can then get the anime using a join from 
+            # need to do this custom matching here TODO
+            anime_title_match = User_Anime.objects.filter(Q(show_id__title=anime_title))
+
+            # Fetch possible matches from alt_titles and check in Python for case-insensitive match
+            possible_alt_title_matches = User_Anime.objects.filter(Q(show_id__alt_titles__contains=[anime_title]))
+            possible_custom_title_matches = User_Anime.objects.filter(Q(custom_titles__contains=[anime_title]))
+
+            matching_anime_alt_titles = []
+            for user_anime in possible_alt_title_matches:
+                alt_titles = user_anime.show_id.alt_titles
+                # Case-insensitive match on alt_titles
+                if any(anime_title.lower() in alt_title.lower() for alt_title in alt_titles):
+                    matching_anime_alt_titles.append(user_anime)
+            alt_title_match = User_Anime.objects.filter(id__in=[anime.id for anime in matching_anime_alt_titles])
+
+            matching_anime_custom_titles = []
+            for user_anime in possible_custom_title_matches:
+                custom_titles = user_anime.alt_titles
+                # Case-insensitive match on alt_titles
+                if any(anime_title.lower() in alt_title.lower() for alt_title in custom_titles):
+                    matching_anime_custom_titles.append(user_anime)
+            custom_title_match = User_Anime.objects.filter(id__in=[anime.id for anime in matching_anime_custom_titles])
+
+            # Combine the query results
+            user_anime_obj = anime_title_match | alt_title_match | custom_title_match
 
             if(user_anime_obj.exists()):
                 return user_anime_obj.get().show_id_id

@@ -13,19 +13,21 @@ class anime_serializer(serializers.ModelSerializer):
 
 class user_anime_serializer(serializers.ModelSerializer):
     anime_title = serializers.CharField(source='show_id.title', read_only=True)
+    alt_titles = serializers.CharField(source='show_id.alt_titles', read_only=True)
     watcher_username = serializers.CharField(source='watcher.user_name', read_only=True)
     anime_status = serializers.SerializerMethodField()
-    watching_status = serializers.SerializerMethodField()
+    watching_status_full = serializers.SerializerMethodField()
+
     
     class Meta:
         model = User_Anime
         fields = ['watcher', 'show_id', 'watching_status', 'custom_titles', 'last_watched_episode', 
-                  'anime_title', 'anime_status', 'watcher_username']
+                  'anime_title', 'alt_titles', 'watcher_username', 'anime_status', 'watching_status_full']
 
     # Custom method to get the expanded airing status (anime_status)
     def get_anime_status(self, obj):
         return obj.show_id.get_status_display() 
 
     # Custom method to get the expanded watching status
-    def get_watching_status(self, obj):
+    def get_watching_status_full(self, obj):
         return obj.get_watching_status_display()

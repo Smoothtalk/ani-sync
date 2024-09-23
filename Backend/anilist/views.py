@@ -126,7 +126,7 @@ def create_anime_list_db_objects(anime_list):
 
             # print(json.dumps(entry, indent=4))
 
-            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', ['']), ('status', 'NYR'), ('subsplease_releases', None)])
+            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', []), ('status', 'NYR'), ('subsplease_releases', None)])
             
             new_anime['show_id'] = entry['mediaId']
             new_anime['title'] = entry['media']['title']['romaji']
@@ -138,12 +138,15 @@ def create_anime_list_db_objects(anime_list):
             # if(type(entry['media']['title']['english']) is None):
             #     print('x')
 
-            #check of synonyms exist for anime 
+            #check of synonyms exist for anime (which is a list) 
             if(len(entry['media']['synonyms']) > 0):
-                new_anime['alt_titles'] = entry['media']['synonyms']
+                new_anime['alt_titles'].extend(entry['media']['synonyms'])
 
+            # append singular anime english tititle
             if(entry['media']['title']['english'] is not None and len(entry['media']['title']['english']) > 0):
-                new_anime['alt_titles'] = entry['media']['title']['english']
+                new_anime['alt_titles'].append(entry['media']['title']['english'])
+
+            # TODO get romaji title from query and also add it here
 
             serializer = anime_serializer(data=new_anime)
 
@@ -155,7 +158,6 @@ def create_anime_list_db_objects(anime_list):
             else:
                 if len(serializer.errors.keys()) > 0:
                     no_errors = False
-
 
     return (no_errors, serialized_ani_list)
 

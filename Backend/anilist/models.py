@@ -46,7 +46,7 @@ class AniList_User(models.Model):
 class Anime(models.Model):
     show_id = models.IntegerField(primary_key=True)
     title = models.CharField(max_length=1000)
-    alt_titles = models.JSONField(default=list, blank=True, null=False)
+    alt_titles = models.JSONField(default=list, blank=True, null=True)
     status = models.CharField(max_length=3, choices=AIRING_STATUS, default=NOT_YET_RELEASED)
 
     def convert_status_to_db(long_value):
@@ -61,12 +61,15 @@ class User_Anime(models.Model):
 
     watcher = models.ForeignKey("AniList_User", on_delete=models.CASCADE)
     show_id = models.ForeignKey("Anime", on_delete=models.CASCADE)
-    watching_status = models.CharField(max_length=3, choices=WATCHING_STATUS, default=PLANNING)
+    watching_status = models.CharField(max_length=3, choices=WATCHING_STATUS)
     custom_titles = models.JSONField(default=list, blank=True, null=True) #user added custom titles
     last_watched_episode = models.SmallIntegerField()
 
     def convert_status_to_db(long_value):
-        return [status for status in WATCHING_STATUS if status[1] == long_value][0][0]
+        for status in WATCHING_STATUS:
+            if status[1] == long_value:
+                return status[0]
+        raise ValueError(f"Invalid status: {long_value}")
 
     def __str__(self):
         match self.watching_status:
