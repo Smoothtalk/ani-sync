@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Case, When, Value, IntegerField
+from django.db.models import Case, When, Value, IntegerField, Q
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -42,7 +42,7 @@ class AnimeList(APIView):
         
 
         if request.query_params.get('status') != None:
-            anime_status = request.query_params.get('status')
+            anime_status = request.query_params.get('status').upper()
 
         #TODO change request to anilist_user.username
         anime_list = retrieve_anilist(request.query_params.get('username'), anime_status)
@@ -55,7 +55,7 @@ class AnimeList(APIView):
         (no_errors, serialized_ani_list) = create_anime_list_db_objects(anime_list)
         create_user_anime_db_objects(anime_list, anilist_user)
 
-        user_anime_list = user_anime_serializer(get_anime_list_from_db(anilist_user), many=True)
+        user_anime_list = user_anime_serializer(get_anime_list_from_db(anilist_user, anime_status), many=True)
 
         return Response(user_anime_list.data, status=status.HTTP_200_OK)
 
@@ -189,7 +189,7 @@ def create_user_anime_db_objects(anime_list, anilist_user_str):
 def get_first_element_graphql_string(graphql_list):
     return graphql_list[1:-1]
 
-def get_anime_list_from_db(anilist_user_str):
+def get_anime_list_from_db(anilist_user_str, anime_status):
     custom_order = Case(
         When(watching_status='CUR', then=Value(1)),
         When(watching_status='PLN', then=Value(2)),
@@ -200,7 +200,13 @@ def get_anime_list_from_db(anilist_user_str):
         output_field=IntegerField()
     )
 
-    return User_Anime.objects.filter(
-        watcher=anilist_user_str).annotate(
-        custom_order=custom_order).order_by(
-        'custom_order')
+    # Prepare the base query
+    query = User_Anime.objects.filter(watcher=anilist_user_str)
+
+    # If anime_status is provided, filter by it, otherwise ignore this filter
+    if anime_status:
+        db_anime_status = User_Anime.convert_status_to_db(anime_status)
+        query = query.filter(Q(watching_status=db_anime_status))
+
+    # Apply the custom ordering and return the result
+    return query.annotate(custom_order=custom_order).order_by('custom_order')
