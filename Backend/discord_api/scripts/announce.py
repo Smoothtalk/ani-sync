@@ -48,10 +48,8 @@ if __name__ == "__main__":
             discordClient.run(token)
         finally:
             # Make sure that all aiohttp resources are closed
-            if platform.system() == 'Windows':
-                if discordClient.http._HTTPClient__session and not discordClient.http._HTTPClient__session.closed:
-                    asyncio.run(discordClient.http._HTTPClient__session.close())
-
+            if discordClient.http._HTTPClient__session and not discordClient.http._HTTPClient__session.closed:
+                asyncio.run(discordClient.http._HTTPClient__session.close())
     else:
         print("No token provided")
         sys.exit(1)
