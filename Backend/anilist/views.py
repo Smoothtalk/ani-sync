@@ -167,14 +167,14 @@ def create_user_anime_db_objects(anime_list, anilist_user_str):
     # add from user_anime_list current episode if it exists 
 
     serialized_user_anime = []
-    anilist_user = AniList_User.objects.get(user_name=anilist_user_str).id
+    anilist_user = AniList_User.objects.get(user_name=anilist_user_str).pk
 
     for type_dict in anime_list:
         entries = type_dict['entries']
         for entry in entries:
             show_id = Anime.objects.get(show_id=entry['mediaId']).show_id
             status = User_Anime.convert_status_to_db(entry['status'])
-            new_user_anime = OrderedDict([('watcher', anilist_user), ('show_id', show_id), ('watching_status', status), ('custom_titles', ['']), ('last_watched_episode', entry['progress'])])
+            new_user_anime = OrderedDict([('watcher', anilist_user), ('show_id', show_id), ('watching_status', status), ('custom_titles', []), ('last_watched_episode', entry['progress'])])
 
             serializer = user_anime_serializer(data=new_user_anime)
 

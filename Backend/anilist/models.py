@@ -62,7 +62,7 @@ class User_Anime(models.Model):
     watcher = models.ForeignKey("AniList_User", on_delete=models.CASCADE)
     show_id = models.ForeignKey("Anime", on_delete=models.CASCADE)
     watching_status = models.CharField(max_length=3, choices=WATCHING_STATUS, default=PLANNING)
-    custom_titles = models.JSONField() #user added custom titles
+    custom_titles = models.JSONField(default=list, blank=True, null=True) #user added custom titles
     last_watched_episode = models.SmallIntegerField()
 
     def convert_status_to_db(long_value):
