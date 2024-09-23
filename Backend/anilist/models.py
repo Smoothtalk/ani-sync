@@ -16,7 +16,7 @@ REPEATING = "RPR"
 AIRING_STATUS = [
 ("FIN", "FINISHED"),
 ("REL", "RELEASING"),
-("NYR", "NOT YET RELEASED"),
+("NYR", "NOT_YET_RELEASED"),
 ("CAN", "CANCELLED"),
 ("HIA", "HIATUS"),
 ]
@@ -48,12 +48,18 @@ class Anime(models.Model):
     title = models.CharField(max_length=1000)
     alt_titles = models.JSONField(default=list, blank=True, null=True)
     status = models.CharField(max_length=3, choices=AIRING_STATUS, default=NOT_YET_RELEASED)
-
+    
     def convert_status_to_db(long_value):
-        return [status for status in AIRING_STATUS if status[1] == long_value][0][0]
+        for status in AIRING_STATUS:
+            if status[1] == long_value:
+                return status[0]
+        raise ValueError(f"Invalid status: {long_value}")
     
     def convert_status_from_db(short_value):
-        return [status for status in AIRING_STATUS if status[0] == short_value][0][1]
+        for status in AIRING_STATUS:
+            if status[0] == short_value:
+                return status[1]
+        raise ValueError(f"Invalid status: {short_value}")
     
     def __str__(self):
         return f"{self.title}"

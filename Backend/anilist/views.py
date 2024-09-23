@@ -152,8 +152,8 @@ def create_anime_list_db_objects(anime_list):
 
             try:
                 anime_db_entry = Anime.objects.get(show_id=new_anime['show_id'])
-            except User_Anime.DoesNotExist:
-                user_anime_db_entry = None
+            except Anime.DoesNotExist:
+                anime_db_entry = None
 
             if serializer.is_valid():
                 if anime_db_entry: #check if fields changed, update if needed
