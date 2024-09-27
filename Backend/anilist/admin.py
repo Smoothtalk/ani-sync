@@ -4,7 +4,7 @@ from anilist.models import Anime, AniList_User, User_Anime
 class Anime_Admin(admin.ModelAdmin):
     @admin.display(description="Airing Status")
     def capitalized_airing_status(obj):
-        return Anime.convert_status_from_db(obj.status).capitalize()
+        return Anime.convert_status_from_db(obj.status).capitalize().replace('_', ' ')
     
     list_filter = ["status"]
 
