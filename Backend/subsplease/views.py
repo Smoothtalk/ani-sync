@@ -128,9 +128,9 @@ def find_anilist_showid_from_title(release_title, anime_titles):
 
             matching_anime_custom_titles = []
             for user_anime in possible_custom_title_matches:
-                custom_titles = user_anime.alt_titles
+                custom_titles = user_anime.custom_titles
                 # Case-insensitive match on alt_titles
-                if any(anime_title.lower() in alt_title.lower() for alt_title in custom_titles):
+                if any(anime_title.lower() in custom_title.lower() for custom_title in custom_titles):
                     matching_anime_custom_titles.append(user_anime)
             custom_title_match = User_Anime.objects.filter(id__in=[anime.id for anime in matching_anime_custom_titles])
 
