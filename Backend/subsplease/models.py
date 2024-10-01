@@ -5,6 +5,7 @@ from anilist.models import Anime
 
 class Url(models.Model):
     feed_url = models.CharField(max_length=200)
+    retroactive_days = models.SmallIntegerField(default=0)
 
     def __str__(self):
         return f"{self.feed_url.split('r=', 1)[1]}"
