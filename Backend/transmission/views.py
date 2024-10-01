@@ -23,6 +23,7 @@ from collections import OrderedDict
 
 from transmission.models import *
 from transmission.serializers import download_serializaer
+from subsplease.models import Url
 
 def index(request):
     return HttpResponse("Hello, world. You're at the transmission index.")
@@ -35,6 +36,8 @@ class Transmission(APIView):
         transmission_client = connect_to_transmission(transmission_obj.address, transmission_obj.port)
         
         host_download_dir = transmission_client.get_session().download_dir
+        
+        retroactive_days = Url.objects.get().retroactive_days
 
         if(transmission_obj.ssh_key_passphrase == None or transmission_obj.ssh_key_passphrase == ''):
             encrypt_ssh_passphrase(transmission_obj)
@@ -43,17 +46,17 @@ class Transmission(APIView):
             transmission_obj.host_download_dir = host_download_dir
             transmission_obj.save()
 
-        downloads = create_download_db_objects()
-
         # Get the current time
         now = timezone.now()
 
         # Calculate the time three days ago
         now = timezone.localtime(timezone.now())
-        three_days_ago = now - timedelta(days=2)
-        last_three_days_downloads = Download.objects.filter(guid__pub_date__gte=three_days_ago)
+        days_ago = now - timedelta(days=retroactive_days)
+        last_variable_days_downloads = Download.objects.filter(guid__pub_date__gte=days_ago)
 
-        latest_downloads_first = last_three_days_downloads.order_by('-guid__pub_date')
+        downloads = create_download_db_objects(retroactive_days)
+
+        latest_downloads_first = last_variable_days_downloads.order_by('-guid__pub_date')
 
         serializer = download_serializaer(latest_downloads_first, many=True)
 
@@ -86,7 +89,7 @@ class Download_Torrents(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
 
-def create_download_db_objects():
+def create_download_db_objects(retroactive_days):
     # get releases
     # check which releases are not in downloads, by comparing guid
     # for every gui not in releases make a list, create download objs and serialize save
@@ -101,7 +104,7 @@ def create_download_db_objects():
 
     # Calculate the time three days ago
     now = timezone.localtime(timezone.now())
-    three_days_ago = now - timedelta(days=2)
+    three_days_ago = now - timedelta(days=retroactive_days)
     last_three_days_releases = Release.objects.filter(pub_date__gte=three_days_ago)
 
     for release in last_three_days_releases:
