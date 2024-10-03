@@ -24,7 +24,6 @@ import requests
 import json
 import xml.etree.ElementTree as ET
 
-
 def index(request):
     return HttpResponse("Hello, world. You're at the anilist index.")
 
@@ -53,6 +52,7 @@ class AnimeList(APIView):
         # print(json.dumps(anime_list, indent=4))
         
         (no_errors, serialized_ani_list) = create_anime_list_db_objects(anime_list)
+
         create_user_anime_db_objects(anime_list, anilist_user)
 
         user_anime_list = user_anime_serializer(get_anime_list_from_db(anilist_user, anime_status), many=True)
@@ -186,19 +186,21 @@ def create_user_anime_db_objects(anime_list, anilist_user_str):
             status = User_Anime.convert_status_to_db(entry['status'])
             new_user_anime = OrderedDict([('watcher', anilist_user), ('show_id', show_id), ('watching_status', status), ('custom_titles', []), ('last_watched_episode', entry['progress'])])
 
-            serializer = user_anime_serializer(data=new_user_anime)
-            
             try:
                 user_anime_db_entry = User_Anime.objects.get(watcher=anilist_user, show_id=show_id)
             except User_Anime.DoesNotExist:
                 user_anime_db_entry = None
             
-            if serializer.is_valid():
-                if user_anime_db_entry:
-                    if has_new_user_anime_fields_changed(new_user_anime, user_anime_db_entry):
-                        user_anime_db_entry.save()
-                else:
-                    serializer.save()
+            if user_anime_db_entry:
+                if has_new_user_anime_fields_changed(new_user_anime, user_anime_db_entry):
+                    user_anime_db_entry.save()
+                    serialized_user_anime.append(user_anime_db_entry)
+
+            else:
+                serializer = user_anime_serializer(data=new_user_anime) 
+
+                if serializer.is_valid():
+                        serializer.save()
 
                 serialized_user_anime.append(new_user_anime)
                 
