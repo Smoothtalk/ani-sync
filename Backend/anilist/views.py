@@ -232,9 +232,9 @@ def has_new_user_anime_fields_changed(new_user_anime, user_anime_db_obj):
     if user_anime_db_obj.watching_status != new_user_anime['watching_status']:
         user_anime_db_obj.watching_status = new_user_anime['watching_status']
         has_changed = True
-    if user_anime_db_obj.custom_titles != new_user_anime['custom_titles']:
-        user_anime_db_obj.custom_titles = new_user_anime['custom_titles']
-        has_changed = True
+    # if user_anime_db_obj.custom_titles != new_user_anime['custom_titles'] :
+    #     user_anime_db_obj.custom_titles.extend(new_user_anime['custom_titles'])
+    #     has_changed = True
     
     return has_changed
 
