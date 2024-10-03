@@ -12,7 +12,7 @@ class Url(models.Model):
 
 class Release(models.Model):
     full_title = models.CharField(max_length=400)
-    link = models.CharField(max_length=1000)
+    link = models.CharField(max_length=2048)
     guid = models.CharField(primary_key=True, max_length=32)
     pub_date = models.DateTimeField()
     simple_title = models.CharField(max_length=200)
