@@ -211,7 +211,6 @@ def move_to_remote_file_server(torrent, remote_download_dir, host_download_dir, 
                )
     
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-    print("Command: " + command)
 
     # need to confirm that the cp is done
     exit_status = stdout.channel.recv_exit_status()  
