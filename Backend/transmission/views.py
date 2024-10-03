@@ -198,19 +198,49 @@ def move_to_remote_file_server(torrent, remote_download_dir, host_download_dir, 
 
     command = "mkdir -p \'" + remote_download_dir + release_obj.simple_title + '\''
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-    command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
-    stdin, stdout, stderr = transmission_host_connection.exec_command(command)
+    # print("Command: " + command)
+    # print("STDOUT: " + stdout.read().decode())
+    # print("STDERR: " + stderr.read().decode())
     
+    # command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
+    # TODO write documentation about gcp
+    command = ("cp " 
+               '\'' + host_download_dir + '/' + torrent.name + '\'' 
+               + ' '
+               +'\'' + remote_download_dir + release_obj.simple_title + '\''
+               )
+    
+    stdin, stdout, stderr = transmission_host_connection.exec_command(command)
+    print("Command: " + command)
+
     # need to confirm that the cp is done
     exit_status = stdout.channel.recv_exit_status()  
 
     if exit_status == 0:
-        command = "mv '" + remote_download_dir + release_obj.simple_title + '/' + torrent.name + "' '" + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+        command = ("mv " 
+        + '\'' + remote_download_dir + release_obj.simple_title + '/' + torrent.name + '\'' 
+        + ' '
+        + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+        )
+
         stdin, stdout, stderr = transmission_host_connection.exec_command(command)  
-        command = "chown 1000:1000 \'" + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+        # print("Command: " + command)
+        # print("STDOUT: " + stdout.read().decode())
+        # print("STDERR: " + stderr.read().decode())
+
+        command = ("chown 1000:1000 " 
+        +'\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\'')
         stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-        command = "chmod 0770 \'" + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+        # print("Command: " + command)
+        # print("STDOUT: " + stdout.read().decode())
+        # print("STDERR: " + stderr.read().decode())
+
+        command = ("chmod 0770 " 
+        + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\'')
         stdin, stdout, stderr = transmission_host_connection.exec_command(command)
+        # print("Command: " + command)
+        # print("STDOUT: " + stdout.read().decode())
+        # print("STDERR: " + stderr.read().decode())
 
 def encrypt_ssh_passphrase(settings_obj):
     env = environ.Env()
