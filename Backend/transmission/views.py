@@ -228,14 +228,16 @@ def move_to_remote_file_server(torrent, remote_download_dir, host_download_dir, 
         # print("STDERR: " + stderr.read().decode())
 
         command = ("chown 1000:1000 " 
-        +'\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\'')
+        +'\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+        )
         stdin, stdout, stderr = transmission_host_connection.exec_command(command)
         # print("Command: " + command)
         # print("STDOUT: " + stdout.read().decode())
         # print("STDERR: " + stderr.read().decode())
 
         command = ("chmod 0770 " 
-        + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\'')
+        + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+        )
         stdin, stdout, stderr = transmission_host_connection.exec_command(command)
         # print("Command: " + command)
         # print("STDOUT: " + stdout.read().decode())
