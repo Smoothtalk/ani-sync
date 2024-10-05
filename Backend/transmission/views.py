@@ -290,7 +290,10 @@ def connect_to_transmission_host(address, username, ssh_key_path, encrypted_pass
     # ssh_client.close
 
 def get_episode_num_from_torrent(torrent_name):
-    return re.search(r'-\s(\d+)\s\(', torrent_name).group(1)
+    match = re.search(r'-\s(\d+v?\d*)\s\(', torrent_name)
+    if match:
+        return match.group(1)
+    return None
 
 def get_download_db_objects():
     pass    # ensure /etc/ssh/sshd_config PubkeyAuthentication yes 
