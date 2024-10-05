@@ -166,7 +166,7 @@ def monitor_torrent(transmission_client, torrent):
         client_torrent = transmission_client.get_torrent(torrent.hash_string)
 
     transmission_obj = Setting.objects.get()
-    transmission_host_connection = connect_to_transmission_host(transmission_obj.address, transmission_obj.username, transmission_obj.ssh_key_path, transmission_obj.ssh_key_passphrase)
+    transmission_host_connection = connect_to_transmission_host(transmission_obj.address, transmission_obj.host_download_username, transmission_obj.ssh_key_path, transmission_obj.ssh_key_passphrase)
     
     move_to_remote_file_server(torrent, transmission_obj.remote_download_dir, transmission_obj.host_download_dir, transmission_host_connection)
     delete_new_download_from_transmission(transmission_client, torrent)
@@ -196,12 +196,18 @@ def move_to_remote_file_server(torrent, remote_download_dir, host_download_dir, 
     release_obj = Release.objects.get(guid=download_obj.guid.guid)
     episode_number = get_episode_num_from_torrent(torrent.name)
 
-    command = "mkdir -p \'" + remote_download_dir + release_obj.simple_title + '\''
+    command = ("mkdir -p " 
+               +'\'' + remote_download_dir + release_obj.simple_title + '\'')
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-    # print("Command: " + command)
-    # print("STDOUT: " + stdout.read().decode())
-    # print("STDERR: " + stderr.read().decode())
-    
+    print("Command: " + command)
+    print("STDOUT: " + stdout.read().decode())
+    print("STDERR: " + stderr.read().decode())
+
+    command = ("chown 1000:1000 "
+               + '\'' + remote_download_dir + release_obj.simple_title + '\''
+                )
+    stdin, stdout, stderr = transmission_host_connection.exec_command(command)
+
     # command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
     # TODO write documentation about gcp
     command = ("cp " 
@@ -209,6 +215,9 @@ def move_to_remote_file_server(torrent, remote_download_dir, host_download_dir, 
                + ' '
                +'\'' + remote_download_dir + release_obj.simple_title + '\''
                )
+    print("Command: " + command)
+    print("STDOUT: " + stdout.read().decode())
+    print("STDERR: " + stderr.read().decode())
     
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
 
