@@ -141,7 +141,7 @@ def add_new_download_to_transmission(client, download):
     # print(download['link'])
     new_torrent = client.add_torrent(download.guid.link)
 
-    return {"torrent:" : new_torrent, "download": download}
+    return {"torrent" : new_torrent, "download" : download}
 
 def delete_new_download_from_transmission(client, torrent):
     client.remove_torrent(torrent.hash_string, delete_data=True)
@@ -159,7 +159,7 @@ def monitor_torrent(transmission_client, torrent_download_dict):
     transmission_obj = Setting.objects.get()
     transmission_host_connection = connect_to_transmission_host(transmission_obj.address, transmission_obj.host_download_username, transmission_obj.ssh_key_path, transmission_obj.ssh_key_passphrase)
     
-    move_to_remote_file_server(torrent, transmission_obj.remote_download_dir, transmission_obj.host_download_dir, transmission_host_connection)
+    move_to_remote_file_server(torrent, download, transmission_obj.remote_download_dir, transmission_obj.host_download_dir, transmission_host_connection)
     delete_new_download_from_transmission(transmission_client, torrent)
    
     print("Done syncing: " + torrent.name)
@@ -184,9 +184,8 @@ def monitor_torrent(transmission_client, torrent_download_dict):
     except Exception as e:
         print(f"Error occurred while calling Discord API: {str(e)}")
 
-def move_to_remote_file_server(torrent, remote_download_dir, host_download_dir, transmission_host_connection):
-    download_obj = Download.objects.get(tid=torrent.hash_string)
-    release_obj = Release.objects.get(guid=download_obj.guid.guid)
+def move_to_remote_file_server(torrent, download, remote_download_dir, host_download_dir, transmission_host_connection):
+    release_obj = Release.objects.get(guid=download.guid.guid)
     episode_number = get_episode_num_from_torrent(torrent.name)
 
     command = ("mkdir -p " 
