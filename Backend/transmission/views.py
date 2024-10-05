@@ -73,13 +73,13 @@ class Download_Torrents(APIView):
         torrents = []
         threads = []
         for download in downloads:
-            new_torrent = add_new_download_to_transmission(transmission_client, download)
-            torrents.append(new_torrent)
+            torrent_download_dict = add_new_download_to_transmission(transmission_client, download)
+            torrents.append(torrent_download_dict)
 
         # from main thread spawn a new monitor thread
         # once all threads are done
-        for torrent in torrents:
-            thread = threading.Thread(target=monitor_torrent, args=(transmission_client, torrent,))
+        for torrent_download_dict in torrents:
+            thread = threading.Thread(target=monitor_torrent, args=(transmission_client, torrent_download_dict,))
             thread.start()
             threads.append(thread)
 
@@ -141,24 +141,15 @@ def add_new_download_to_transmission(client, download):
     # print(download['link'])
     new_torrent = client.add_torrent(download.guid.link)
 
-    download_from_db = Download.objects.get(guid=download.guid)
-    
-    #save tid to download obj using serializer
-    updated_data = {'tid' : new_torrent.hash_string}
-
-    serializer = download_serializaer(download_from_db, data=updated_data, partial=True)
-
-    if serializer.is_valid():
-        serializer.save()
-    else:
-        print(serializer.errors)
-
-    return new_torrent
+    return {"torrent:" : new_torrent, "download": download}
 
 def delete_new_download_from_transmission(client, torrent):
     client.remove_torrent(torrent.hash_string, delete_data=True)
 
-def monitor_torrent(transmission_client, torrent):
+def monitor_torrent(transmission_client, torrent_download_dict):
+    torrent = torrent_download_dict['torrent']
+    download = torrent_download_dict['download']
+
     client_torrent = transmission_client.get_torrent(torrent.hash_string)
 
     # might need to adjust this
@@ -172,6 +163,8 @@ def monitor_torrent(transmission_client, torrent):
     delete_new_download_from_transmission(transmission_client, torrent)
    
     print("Done syncing: " + torrent.name)
+
+    add_tid_to_download(torrent, download)
 
     # send async post api discord here later
     post_data = {
@@ -251,6 +244,19 @@ def move_to_remote_file_server(torrent, remote_download_dir, host_download_dir, 
         # print("Command: " + command)
         # print("STDOUT: " + stdout.read().decode())
         # print("STDERR: " + stderr.read().decode())
+
+def add_tid_to_download(torrent, download):
+    download_from_db = Download.objects.get(guid=download.guid)
+    
+    #save tid to download obj using serializer
+    updated_data = {'tid' : torrent.hash_string}
+
+    serializer = download_serializaer(download_from_db, data=updated_data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+    else:
+        print(serializer.errors)
 
 def encrypt_ssh_passphrase(settings_obj):
     env = environ.Env()
