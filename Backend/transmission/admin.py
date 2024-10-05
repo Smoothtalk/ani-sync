@@ -29,6 +29,7 @@ class Download_Admin(admin.ModelAdmin):
 
     list_display_links = ("tid",)
 
+    search_fields = ["anime__title"]
 
 # Register your models here.
 admin.site.register(Setting)

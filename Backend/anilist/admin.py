@@ -13,6 +13,8 @@ class Anime_Admin(admin.ModelAdmin):
         capitalized_airing_status,
     ]
 
+    search_fields = ["title"]
+
 class User_Anime_Admin(admin.ModelAdmin):
     @admin.display(description="Watching Status")
     def capitalized_watching_status(obj):
@@ -28,6 +30,8 @@ class User_Anime_Admin(admin.ModelAdmin):
     list_filter = ["watching_status",]
 
     list_display_links = ("show_id",)
+
+    search_fields = ["show_id__title"]
 
 # Register your models here.
 admin.site.register(Anime, Anime_Admin)
