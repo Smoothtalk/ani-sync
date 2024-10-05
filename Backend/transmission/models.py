@@ -10,7 +10,7 @@ class Setting(models.Model):
     remote_download_dir = models.CharField(max_length=1000, null=True) # if you need anything big, you got bigger problems
     host_download_dir = models.CharField(max_length=1000, null=True)
     ssh_key_path = models.CharField(max_length=255, default='')
-    username = models.CharField(max_length=100, default='')
+    host_download_username = models.CharField(max_length=100, default='')
     ssh_key_passphrase = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
