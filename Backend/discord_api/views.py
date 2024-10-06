@@ -88,7 +88,7 @@ class Discord_Class(APIView):
         return torrent
 
 async def async_get_episode_num_from_torrent(torrent_name):
-    search_result = await sync_to_async(lambda: re.search(r'-\s(\d+)\s\(', torrent_name))()
+    search_result = await sync_to_async(lambda: re.search(r'-\s([\d]+(?:\.\d+)?(?:v\d+)?)\s\(', torrent_name))()
     
     if search_result:
         return search_result.group(1)
