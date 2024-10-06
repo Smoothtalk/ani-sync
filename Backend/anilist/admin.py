@@ -1,19 +1,22 @@
 from django.contrib import admin
 from anilist.models import Anime, AniList_User, User_Anime
+import datetime
 
 class Anime_Admin(admin.ModelAdmin):
     @admin.display(description="Airing Status")
     def capitalized_airing_status(obj):
         return Anime.convert_status_from_db(obj.status).capitalize().replace('_', ' ')
     
-    list_filter = ["status"]
+    list_filter = ("status", "season",)
 
     list_display = [
         "title",
         capitalized_airing_status,
+        "season",
+        "season_year",
     ]
 
-    search_fields = ["title"]
+    search_fields = ["title", "season_year", "alt_titles"]
 
 class User_Anime_Admin(admin.ModelAdmin):
     @admin.display(description="Watching Status")
