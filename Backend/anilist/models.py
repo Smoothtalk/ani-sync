@@ -13,21 +13,33 @@ DROPPED = "DRP"
 PAUSED = "PAU"
 REPEATING = "RPR"
 
+WINTER = "Winter"
+SPRING = "Spring"
+SUMMER = "Summer"
+FALL = "Fall"
+
+SEASONS = [
+    ("WINTER", "Winter"),
+    ("SPRING", "Spring"),
+    ("SUMMER", "Summer"),
+    ("FALL", "Fall"),
+]
+
 AIRING_STATUS = [
-("FIN", "FINISHED"),
-("REL", "RELEASING"),
-("NYR", "NOT_YET_RELEASED"),
-("CAN", "CANCELLED"),
-("HIA", "HIATUS"),
+    ("FIN", "FINISHED"),
+    ("REL", "RELEASING"),
+    ("NYR", "NOT_YET_RELEASED"),
+    ("CAN", "CANCELLED"),
+    ("HIA", "HIATUS"),
 ]
 
 WATCHING_STATUS = [
-("CUR", "CURRENT"),
-("PLN", "PLANNING"),
-("CPL", "COMPLETED"),
-("DRP", "DROPPED"),
-("PAU", "PAUSED"),
-("RPR", "REPEATING"),
+    ("CUR", "CURRENT"),
+    ("PLN", "PLANNING"),
+    ("CPL", "COMPLETED"),
+    ("DRP", "DROPPED"),
+    ("PAU", "PAUSED"),
+    ("RPR", "REPEATING"),
 ]
 
 
@@ -48,6 +60,8 @@ class Anime(models.Model):
     title = models.CharField(max_length=1000)
     alt_titles = models.JSONField(default=list, blank=True, null=True)
     status = models.CharField(max_length=3, choices=AIRING_STATUS, default=NOT_YET_RELEASED)
+    season = models.CharField(max_length=6, choices=SEASONS, null=True)
+    season_year = models.SmallIntegerField(null=True)
     
     def convert_status_to_db(long_value):
         for status in AIRING_STATUS:
