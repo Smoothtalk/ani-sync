@@ -22,7 +22,7 @@ class Download_Admin(admin.ModelAdmin):
     def get_queryset(self, request):
         # Annotate the queryset with the related Release's pub_date field
         qs = super().get_queryset(request)
-        return qs.annotate(pub_date=F('guid__pub_date'))  # Use FK to get pub_date from Release
+        return qs.annotate(pub_date=F('guid__pub_date')).order_by('-pub_date')  # Use FK to get pub_date from Release
 
     # anime, episode_num, pub date, tid
     list_display = [anime_series, episode_num, pub_date, "tid"]
