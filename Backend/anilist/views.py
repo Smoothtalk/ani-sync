@@ -93,6 +93,8 @@ def retrieve_anilist(user_name, status=''):
                     title {romaji, english}
                     startDate {year,month,day}
                     endDate {year,month,day}
+                    season
+                    seasonYear
                     }
                 }
             }
@@ -126,11 +128,13 @@ def create_anime_list_db_objects(anime_list):
 
             # print(json.dumps(entry, indent=4))
 
-            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', []), ('status', 'NYR'), ('subsplease_releases', None)])
+            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', []), ('status', 'NYR'), ('season', None), ('season_year', None)])
             
             new_anime['show_id'] = entry['mediaId']
             new_anime['title'] = entry['media']['title']['romaji']
             new_anime['status'] = Anime.convert_status_to_db(entry['media']['status'])
+            new_anime['season'] = entry['media']['season']
+            new_anime['season_year'] = entry['media']['seasonYear']
 
             # TODO debugging clutter, remove later
             # if(new_anime['show_id'] == 169441):
@@ -148,22 +152,21 @@ def create_anime_list_db_objects(anime_list):
 
             # TODO get romaji title from query and also add it here
 
-            serializer = anime_serializer(data=new_anime)
-
             try:
                 anime_db_entry = Anime.objects.get(show_id=new_anime['show_id'])
             except Anime.DoesNotExist:
                 anime_db_entry = None
 
-            if serializer.is_valid():
-                if anime_db_entry: #check if fields changed, update if needed
-                    if has_new_anime_fields_changed(new_anime, anime_db_entry):
-                        anime_db_entry.save()
-                else:
-                    serializer.save()
-            
-                serialized_ani_list.append(new_anime)
+            if anime_db_entry: #check if fields changed, update if needed
+                if has_new_anime_fields_changed(new_anime, anime_db_entry):
+                    anime_db_entry.save()
+                    serialized_ani_list.append(anime_db_entry)
             else:
+                serializer = anime_serializer(data=new_anime)
+                if serializer.is_valid():
+                    serializer.save() 
+                serialized_ani_list.append(new_anime)
+
                 if len(serializer.errors.keys()) > 0:
                     no_errors = False
 
@@ -200,7 +203,7 @@ def create_user_anime_db_objects(anime_list, anilist_user_str):
                 serializer = user_anime_serializer(data=new_user_anime) 
 
                 if serializer.is_valid():
-                        serializer.save()
+                    serializer.save()
 
                 serialized_user_anime.append(new_user_anime)
                 
@@ -219,6 +222,12 @@ def has_new_anime_fields_changed(new_anime, anime_db_obj):
         has_changed = True
     if anime_db_obj.alt_titles != new_anime['alt_titles']:
         anime_db_obj.alt_titles = new_anime['alt_titles']
+        has_changed = True
+    if anime_db_obj.season != new_anime['season']:
+        anime_db_obj.season = new_anime['season']
+        has_changed = True
+    if anime_db_obj.season_year != new_anime['season_year']:
+        anime_db_obj.season_year = new_anime['season_year']
         has_changed = True
     
     return has_changed
