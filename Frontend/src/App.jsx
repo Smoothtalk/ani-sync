@@ -1,4 +1,5 @@
 import RecentDownloads from "./components/RecentDownloads";
+import "./App.css";
 
 function App() {
   return (

@@ -1,3 +1,7 @@
+.titleDiv {
+}
+
 .title {
-  padding-right: 1.5rem;
+  color: red;
+  text-align: center;
 }

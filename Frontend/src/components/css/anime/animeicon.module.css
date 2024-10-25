@@ -1,8 +1,7 @@
-.animeIcon {
-  width: 7%;
-  height: 12.5%;
+.animeIconDiv {
 }
 
-.element {
-  display: contents;
+.animeIcon {
+  max-width: 200px;
+  height: auto;
 }

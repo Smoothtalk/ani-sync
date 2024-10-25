@@ -14,7 +14,7 @@ export default function AnimeIcon({ anime_id }) {
     getIcon(anime_id);
   }, []);
   return (
-    <div className={styles.element}>
+    <div className={styles.animeIconDiv}>
       <img className={styles.animeIcon} src={image_url} />
     </div>
   );

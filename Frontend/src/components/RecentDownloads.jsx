@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import AnimeEntry from "./Anime/AnimeEntry";
+import style from "./css/recentdownloads.module.css";
 
 export default function RecentDownloads() {
   const URL = "/transmission/get_recent_downloads/";
@@ -16,7 +17,7 @@ export default function RecentDownloads() {
   }, []);
 
   return (
-    <div>
+    <div className={style.entries}>
       {animeData.map((anime) => (
         <AnimeEntry key={anime.guid} anime={anime} />
       ))}
