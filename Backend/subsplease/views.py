@@ -1,5 +1,8 @@
 import feedparser
 import itertools
+
+from nyaapy import anime_site
+
 from Levenshtein import ratio
 from subsplease.models import *
 from subsplease.serializers import release_serializer
@@ -48,6 +51,26 @@ class SubsPlease(APIView):
 
         return Response(serialized_releases, status=status.HTTP_200_OK)
     
+class Nyaa(APIView):
+
+    def get(self, request):
+
+        # assume series is added to user name & anime
+        # get episode count
+        # try multiple groups (subsplease, erai-raws, horriblesubs)
+        # process till be either get a batch or episode count
+        # need to 
+        
+        search_results = search_subsplease_on_nyaa_for_all_episodes("Slime", "24", "1080p")
+
+        if (len(search_results) == 0):
+            return Response([], status=status.HTTP_200_OK)
+            # TODO try another group
+
+        process_nyaa_releases(search_results)
+
+        return Response([], status=status.HTTP_200_OK)
+
 def create_releases_db_objects(releases_str):
     # Add new releases to db
     # make sure to add it to the anime too
@@ -176,5 +199,75 @@ def get_all_cur_pln_titles():
 
     return combined_list
 
+def get_current_season():
+    # get any currently airing anime
+    # get the season/year of that anime, then return 
+    # Won't work because some anime run into next season with 12+ episodes
+
+    # currently_airing_anime = Anime.objects.filter(status="REL").first()
+    # print("Current Year:", currently_airing_anime.season_year)
+    # print("Current Season:", currently_airing_anime.season)
+
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    current_season = ""
+
+    if current_month in (1, 2):
+        current_season = "Winter"
+    elif current_month is 12:
+        current_year += 1
+        current_season = "Winter"
+    elif current_month in (3, 4, 5):
+        current_season = "Spring"
+    elif current_month in (6, 7, 8):
+        current_season = "Summer"
+    elif current_month in (9, 10, 11):
+        current_season = "Fall"
+    else:
+        current_season = None
+
+    return {"current_season": current_season, "current_year": current_year}
+
 def get_anime_obj(anilist_id):
     return Anime.objects.get(show_id=anilist_id)
+
+def search_subsplease_on_nyaa_for_all_episodes(title, release_group, resolution):
+    string_tuple = (title, release_group, resolution)
+    search_string = " ".join(string_tuple)
+
+    results = anime_site.AnimeTorrentSite.search(search_string, category=1, subcategory=2)
+    
+    return results    
+
+def process_nyaa_releases(search_results):
+    
+    if(len(search_results) < 1):
+        return
+    
+    if any("Batch" in search_result.name for search_result in search_results):
+        print("Batch in results")
+        # add batch to torrent
+        # need to be able to move whole folder to remote host
+        # shouldn't care about names
+    else:
+        print("Batch not in results")
+        highest_seeders = -1
+        best_torrent = None
+
+        for result in search_results:
+            print(result.name + result.seeders)
+
+            #find highest seeders if a tie pick the newest released one
+            if int(result.seeders) > int(highest_seeders):
+                highest_seeders = result.seeders
+                best_torrent = result
+            elif int(result.seeders) == int(highest_seeders):
+                result_datetime_obj = datetime.strptime(result.date, '%Y-%m-%d %H:%M')
+                best_torrent_datetime_obj = datetime.strptime(best_torrent.date, '%Y-%m-%d %H:%M')
+
+                if result_datetime_obj > best_torrent_datetime_obj:
+                    best_torrent = result
+
+        print(best_torrent.seeders)    
+        # add each episode
+        # treat like new release

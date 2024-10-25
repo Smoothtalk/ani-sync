@@ -22,7 +22,7 @@ from django.db.models import Q
 from collections import OrderedDict
 
 from transmission.models import *
-from transmission.serializers import download_serializaer
+from transmission.serializers import download_serializaer, recent_download_serializer
 from subsplease.models import Url
 
 def index(request):
@@ -61,7 +61,16 @@ class Transmission(APIView):
         serializer = download_serializaer(latest_downloads_first, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
+class Recent_Download_Torrents(APIView):
+    def get(self, request):
+
+        downloads = Download.objects.order_by('-guid__pub_date')
+
+        serialized_downloads = recent_download_serializer(downloads, many=True)
+
+        return Response(serialized_downloads.data, status=status.HTTP_200_OK)
+
 class Download_Torrents(APIView):
     def get(self, request):
         transmission_obj = Setting.objects.get()
