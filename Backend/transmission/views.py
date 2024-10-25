@@ -197,6 +197,9 @@ def move_to_remote_file_server(torrent, download, remote_download_dir, host_down
     release_obj = Release.objects.get(guid=download.guid.guid)
     episode_number = get_episode_num_from_torrent(torrent.name)
 
+    if episode_number is None:
+        episode_number = ""
+
     command = ("mkdir -p " 
                +'\'' + remote_download_dir + release_obj.simple_title + '\'')
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
