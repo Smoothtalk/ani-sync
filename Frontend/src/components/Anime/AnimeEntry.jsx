@@ -9,7 +9,7 @@ import AnimeEpisodeNum from "./AnimeEpisodeNum";
 export default function AnimeEntry({ anime }) {
   return (
     <div className={styles.entry}>
-      <AnimeIcon anime_id={anime.anime} />
+      <AnimeIcon icon_url={anime.icon_url} />
       <AnimeTitle title={anime.simple_title} />
       <AnimeEpisodeNum episode={anime.episode_num} />
       <AnimeReleaseDate release_date={anime.pub_date} />

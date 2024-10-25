@@ -1,4 +1,7 @@
 .releasedateDiv {
+  margin-left: 2%;
+  justify-content: right;
+  display: flex;
 }
 
 .releasedate {

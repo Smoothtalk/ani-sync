@@ -1,8 +1,8 @@
 .entry {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr 1fr;
+  display: flex;
+  /* grid-template-columns: 1fr 2fr 1fr 1fr; */
   align-items: center;
-  justify-items: center;
-  margin-left: 25%;
-  margin-right: 25%;
+  /* justify-items: center; */
+  margin-left: 20%;
+  margin-right: 20%;
 }
