@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from subsplease.models import *
 from anilist.models import *
+from django.utils import timezone
 
 from transmission.models import *
 
@@ -20,7 +21,7 @@ class download_serializaer(serializers.ModelSerializer):
 class recent_download_serializer(serializers.ModelSerializer):
     anime = serializers.PrimaryKeyRelatedField(queryset=Anime.objects.all())
     release_title = serializers.CharField(source='guid.full_title', read_only=True)
-    pub_date = serializers.DateTimeField(source='guid.pub_date', read_only=True)
+    pub_date = serializers.SerializerMethodField()
     episode_num = serializers.SerializerMethodField()
     simple_title = serializers.CharField(source="guid.simple_title", read_only=True)
     icon_url = serializers.CharField(source='anime.icon_url')
@@ -30,6 +31,14 @@ class recent_download_serializer(serializers.ModelSerializer):
         from transmission.views import get_episode_num_from_torrent
         return get_episode_num_from_torrent(obj.guid.full_title)
 
+    def get_pub_date(self, obj):
+        pub_date = obj.guid.pub_date
+        django_timezone = timezone.get_current_timezone()
+        pub_date_tz = pub_date.replace(tzinfo=django_timezone)
+        
+        pub_date_fmt = pub_date_tz.strftime("%B %d %Y - %I:%M %p %Z")
+
+        return pub_date_fmt
 
     class Meta:
         model = Download
