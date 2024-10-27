@@ -1,7 +1,8 @@
 .releasedateDiv {
-  margin-left: 7%;
-  justify-content: right;
+  margin-left: auto;
+  justify-content: center;
   display: flex;
+  max-width: 100%;
 }
 
 .releasedate {
