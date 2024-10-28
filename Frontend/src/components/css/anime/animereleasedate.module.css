@@ -1,3 +1,6 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300'); */
+@import url("https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap");
+
 .releasedateDiv {
   margin-left: auto;
   justify-content: center;
@@ -6,6 +9,10 @@
 }
 
 .releasedate {
-  color: green;
+  color: chartreuse;
   text-align: right;
+  font-family: "Exo 2", sans-serif;
+  font-weight: 666;
+  font-size: 17px;
+  font-style: normal;
 }

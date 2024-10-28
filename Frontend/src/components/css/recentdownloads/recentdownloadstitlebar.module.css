@@ -1,0 +1,41 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap");
+
+.titlebar {
+  color: whitesmoke;
+  font-family: "Exo 2", sans-serif;
+  font-weight: 666;
+  font-size: 17px;
+  font-style: normal;
+  display: flex;
+  margin-left: 20%;
+  margin-right: 20%;
+  position: sticky;
+  top: 0px;
+  z-index: 100;
+  background-color: rgba(126, 118, 118, 0.77);
+  border-radius: 10px;
+}
+
+.icon {
+  margin-inline: auto;
+}
+
+.title {
+  margin-left: 3rem;
+  margin-right: 3rem;
+  width: 34%;
+  text-align: center;
+}
+
+.episodeNum {
+  margin-left: auto;
+  margin-right: 8.5rem;
+}
+
+.pubDate {
+  margin-left: auto;
+  margin-right: 1%;
+  justify-content: center;
+  display: flex;
+  max-width: 100%;
+}

@@ -24,6 +24,7 @@ from collections import OrderedDict
 from transmission.models import *
 from transmission.serializers import download_serializaer, recent_download_serializer
 from subsplease.models import Url
+from anilist.models import User_Anime
 
 def index(request):
     return HttpResponse("Hello, world. You're at the transmission index.")
@@ -64,10 +65,11 @@ class Transmission(APIView):
 
 class Recent_Download_Torrents(APIView):
     def get(self, request):
+        req_username = request.GET.get('username')
 
-        downloads = Download.objects.order_by('-guid__pub_date')
-
-        serialized_downloads = recent_download_serializer(downloads, many=True)
+        current_or_pln_user_anime = User_Anime.objects.filter(watcher__user_name=req_username, watching_status__in=["CUR", "PLN"]).values_list('show_id', flat=True)
+        recently_downloaded_cur_pln_anime = Download.objects.filter(anime__in=current_or_pln_user_anime).order_by('-guid__pub_date')
+        serialized_downloads = recent_download_serializer(recently_downloaded_cur_pln_anime, many=True)
 
         return Response(serialized_downloads.data, status=status.HTTP_200_OK)
 
