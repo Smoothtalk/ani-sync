@@ -10,17 +10,13 @@
 @media screen and (max-width: 1300px) {
   .entry {
     margin: 0px;
-    /* margin-bottom: 3%;
-    display: grid;
-    grid-template-columns: 0.1fr 2fr 0.1fr 1fr; */
+    margin-bottom: 1vw;
   }
 }
 
 @media screen and (max-width: 800px) {
   .entry {
     margin: 0px;
-    /* margin-bottom: 3%;
-    display: grid;
-    grid-template-columns: 0.1fr 2fr 0.1fr 1fr; */
+    margin-bottom: 2vw;
   }
 }
