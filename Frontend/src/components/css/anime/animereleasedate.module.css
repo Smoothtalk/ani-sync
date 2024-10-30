@@ -4,6 +4,7 @@
 .releasedateDiv {
   display: grid;
   justify-items: right;
+  max-width: 6vw;
 }
 
 .releasedate {
@@ -20,6 +21,17 @@
 @media screen and (max-width: 1300px) {
   .releasedate {
     font-size: 12px;
+    margin-right: 1vw;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .releasedateDiv {
+    display: block;
+  }
+
+  .releasedate {
+    font-size: 10px;
     margin-right: 1vw;
   }
 }

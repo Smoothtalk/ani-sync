@@ -12,3 +12,10 @@
     height: auto;
   }
 }
+
+@media screen and (max-width: 800px) {
+  .animeIcon {
+    max-width: 2rem;
+    height: auto;
+  }
+}
