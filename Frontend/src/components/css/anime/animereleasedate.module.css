@@ -17,3 +17,10 @@
   margin-top: 5%;
   margin-bottom: 0px;
 }
+
+@media screen and (max-width: 1300px) {
+  .releasedate {
+    font-size: 12px;
+    margin-right: 1vw;
+  }
+}

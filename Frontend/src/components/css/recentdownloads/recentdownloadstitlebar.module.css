@@ -39,3 +39,70 @@
   display: flex;
   max-width: 100%;
 }
+
+@media screen and (max-width: 1300px) {
+  .titlebar {
+    margin-left: 0%;
+    margin-right: 0%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon {
+    font-size: 12px;
+    margin-inline: 2.55vw;
+  }
+
+  .title {
+    font-size: 12px;
+    margin: auto;
+    color: blue;
+    margin-left: 15vw;
+    margin-right: 18vw;
+    width: 20vw;
+  }
+
+  .episodeNum {
+    font-size: 12px;
+    margin-left: 0.5vw;
+  }
+
+  .pubDate {
+    font-size: 12px;
+    margin-inline: 0px;
+    margin-right: 1vw;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .titlebar {
+    margin-left: 0%;
+    margin-right: 0%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon {
+    font-size: 12px;
+    margin: auto;
+    margin-left: 5vw;
+  }
+
+  .title {
+    text-align: center;
+    font-size: 12px;
+    margin: auto;
+    width: 55%;
+    color: green;
+  }
+
+  .episodeNum {
+    font-size: 12px;
+    margin: auto;
+  }
+
+  .pubDate {
+    font-size: 12px;
+    margin: auto;
+  }
+}

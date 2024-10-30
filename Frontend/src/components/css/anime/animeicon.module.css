@@ -5,3 +5,10 @@
   max-width: 150px;
   height: auto;
 }
+
+@media screen and (max-width: 1300px) {
+  .animeIcon {
+    max-width: 4rem;
+    height: auto;
+  }
+}

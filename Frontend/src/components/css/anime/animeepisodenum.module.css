@@ -10,3 +10,9 @@
   font-size: 30px;
   font-style: normal;
 }
+
+@media screen and (max-width: 1300px) {
+  .episodenum {
+    font-size: 15px;
+  }
+}
