@@ -16,6 +16,7 @@
 
 @media screen and (max-width: 800px) {
   .entry {
+    justify-content: space-around;
     margin: 0px;
     margin-bottom: 2vw;
   }
