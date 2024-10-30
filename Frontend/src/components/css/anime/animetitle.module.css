@@ -1,9 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap");
 
 .titleDiv {
-  margin-left: 3rem;
-  margin-right: 3rem;
-  width: 40%;
+  margin-left: 0rem;
+  margin-right: 0rem;
+  width: 50%;
   text-align: justify;
 }
 
@@ -17,9 +17,6 @@
 
 @media screen and (max-width: 1300px) {
   .titleDiv {
-    margin-left: 15vw;
-    margin-right: 15vw;
-    width: 20vw;
     text-align: justify;
   }
 
@@ -30,9 +27,6 @@
 
 @media screen and (max-width: 800px) {
   .titleDiv {
-    margin-left: 10vw;
-    margin-right: 5vw;
-    width: 60%;
     text-align: justify;
   }
 

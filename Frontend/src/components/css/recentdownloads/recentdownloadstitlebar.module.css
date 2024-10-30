@@ -6,38 +6,36 @@
   font-weight: 666;
   font-size: 17px;
   font-style: normal;
+
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-left: 20%;
   margin-right: 20%;
+
   position: sticky;
   top: 0px;
   z-index: 100;
+
   background-color: rgba(126, 118, 118, 0.77);
   border-radius: 10px;
 }
 
 .icon {
-  margin-inline: auto;
+  margin-left: 3vw;
+  margin-right: 3vw;
 }
 
 .title {
-  margin-left: 3rem;
-  margin-right: 3rem;
-  width: 34%;
   text-align: center;
+  width: 45%;
 }
 
 .episodeNum {
-  margin-left: auto;
-  margin-right: 8.5rem;
+  margin-left: 0%;
 }
 
 .pubDate {
-  margin-left: auto;
-  margin-right: 1%;
-  justify-content: center;
-  display: flex;
-  max-width: 100%;
 }
 
 @media screen and (max-width: 1300px) {
@@ -45,7 +43,7 @@
     margin-left: 0%;
     margin-right: 0%;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
   }
 
   .icon {
@@ -55,21 +53,17 @@
 
   .title {
     font-size: 12px;
-    margin: auto;
+    text-align: left;
     color: blue;
-    margin-left: 15vw;
-    margin-right: 18vw;
-    width: 20vw;
   }
 
   .episodeNum {
     font-size: 12px;
-    margin-left: 0.5vw;
   }
 
   .pubDate {
     font-size: 12px;
-    margin-inline: 0px;
+    margin-left: 4vw;
     margin-right: 1vw;
   }
 }
@@ -89,10 +83,10 @@
   }
 
   .title {
-    text-align: center;
+    text-align: left;
     font-size: 12px;
     margin: auto;
-    width: 55%;
+    width: 35%;
     color: green;
   }
 

@@ -2,9 +2,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap");
 
 .releasedateDiv {
-  margin-left: auto;
   display: grid;
-  justify-items: center;
+  justify-items: right;
 }
 
 .releasedate {
