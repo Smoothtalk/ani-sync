@@ -3,9 +3,8 @@
 
 .releasedateDiv {
   margin-left: auto;
-  justify-content: center;
-  display: flex;
-  max-width: 100%;
+  display: grid;
+  justify-items: center;
 }
 
 .releasedate {
@@ -15,4 +14,6 @@
   font-weight: 666;
   font-size: 17px;
   font-style: normal;
+  margin-top: 5%;
+  margin-bottom: 0px;
 }

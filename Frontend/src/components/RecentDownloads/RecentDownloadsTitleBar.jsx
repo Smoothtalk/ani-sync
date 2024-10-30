@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import style from "../css/recentdownloads/recentdownloadstitlebar.module.css";
 
 export default function RecentDownloadsTitleBar() {
