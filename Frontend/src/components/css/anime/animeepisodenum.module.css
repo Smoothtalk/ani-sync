@@ -16,3 +16,9 @@
     font-size: 12px;
   }
 }
+
+@media screen and (max-width: 800px) {
+  .episodenum {
+    font-size: 10px;
+  }
+}
