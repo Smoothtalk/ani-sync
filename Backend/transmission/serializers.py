@@ -2,6 +2,7 @@ from rest_framework import serializers
 from subsplease.models import *
 from anilist.models import *
 from django.utils import timezone
+from datetime import timedelta
 
 from transmission.models import *
 
@@ -34,9 +35,10 @@ class recent_download_serializer(serializers.ModelSerializer):
     def get_pub_date(self, obj):
         pub_date = obj.guid.pub_date
         django_timezone = timezone.get_current_timezone()
-        pub_date_tz = pub_date.replace(tzinfo=django_timezone)
+        pub_date_tz = pub_date.astimezone(django_timezone)
+        pub_date_corrected = pub_date_tz + timedelta(minutes=30)
         
-        pub_date_fmt = pub_date_tz.strftime("%B %d %Y - %I:%M %p %Z")
+        pub_date_fmt = pub_date_corrected.strftime("%B %d %Y - %I:%M %p %Z")
 
         return pub_date_fmt
 
