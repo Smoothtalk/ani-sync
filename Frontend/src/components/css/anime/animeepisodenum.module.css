@@ -1,0 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap");
+
+.episodenumdiv {
+}
+
+.episodenum {
+  color: cyan;
+  font-family: "Exo 2", sans-serif;
+  font-weight: 666;
+  font-size: 30px;
+  font-style: normal;
+}
+
+@media screen and (max-width: 1300px) {
+  .episodenum {
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .episodenum {
+    font-size: 10px;
+  }
+}

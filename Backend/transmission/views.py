@@ -22,8 +22,9 @@ from django.db.models import Q
 from collections import OrderedDict
 
 from transmission.models import *
-from transmission.serializers import download_serializaer
+from transmission.serializers import download_serializaer, recent_download_serializer
 from subsplease.models import Url
+from anilist.models import User_Anime, AniList_User
 
 def index(request):
     return HttpResponse("Hello, world. You're at the transmission index.")
@@ -61,7 +62,20 @@ class Transmission(APIView):
         serializer = download_serializaer(latest_downloads_first, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
+class Recent_Download_Torrents(APIView):
+    def get(self, request):
+        req_username = request.GET.get('username')
+
+        if not AniList_User.objects.filter(user_name=req_username).exists():
+            return Response("Error", status=status.HTTP_400_BAD_REQUEST)
+        else:
+            current_or_pln_user_anime = User_Anime.objects.filter(watcher__user_name=req_username, watching_status__in=["CUR", "PLN"]).values_list('show_id', flat=True)
+            recently_downloaded_cur_pln_anime = Download.objects.filter(anime__in=current_or_pln_user_anime).order_by('-guid__pub_date')
+            serialized_downloads = recent_download_serializer(recently_downloaded_cur_pln_anime, many=True)
+
+            return Response(serialized_downloads.data, status=status.HTTP_200_OK)
+
 class Download_Torrents(APIView):
     def get(self, request):
         transmission_obj = Setting.objects.get()
@@ -187,6 +201,9 @@ def monitor_torrent(transmission_client, torrent_download_dict):
 def move_to_remote_file_server(torrent, download, remote_download_dir, host_download_dir, transmission_host_connection):
     release_obj = Release.objects.get(guid=download.guid.guid)
     episode_number = get_episode_num_from_torrent(torrent.name)
+
+    if episode_number is None:
+        episode_number = ""
 
     command = ("mkdir -p " 
                +'\'' + remote_download_dir + release_obj.simple_title + '\'')

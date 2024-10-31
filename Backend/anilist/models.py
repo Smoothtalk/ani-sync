@@ -62,6 +62,7 @@ class Anime(models.Model):
     status = models.CharField(max_length=3, choices=AIRING_STATUS, default=NOT_YET_RELEASED)
     season = models.CharField(max_length=6, choices=SEASONS, null=True)
     season_year = models.SmallIntegerField(null=True)
+    icon_url = models.CharField(max_length=2000, null=True)
     
     def convert_status_to_db(long_value):
         for status in AIRING_STATUS:

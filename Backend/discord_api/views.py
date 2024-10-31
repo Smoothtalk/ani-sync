@@ -36,6 +36,9 @@ class Discord_Class(APIView):
         torrent_name = await sync_to_async(lambda: torrent_data['name'])()
         episode_num = await async_get_episode_num_from_torrent(torrent_name)
 
+        if episode_num is None:
+            episode_num = ""
+
         # anime_title = await sync_to_async(lambda: download_obj.anime.title)()
         anime_title_with_episode_num = release_obj.simple_title + " - " + episode_num + ".mkv"
         anime_title_with_quotes = f'"{anime_title_with_episode_num}"'

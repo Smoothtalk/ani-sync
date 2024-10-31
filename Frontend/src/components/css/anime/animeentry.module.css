@@ -1,0 +1,23 @@
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 20%;
+  margin-right: 20%;
+  margin-bottom: 2%;
+}
+
+@media screen and (max-width: 1300px) {
+  .entry {
+    margin: 0px;
+    margin-bottom: 1vw;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .entry {
+    justify-content: space-around;
+    margin: 0px;
+    margin-bottom: 2vw;
+  }
+}

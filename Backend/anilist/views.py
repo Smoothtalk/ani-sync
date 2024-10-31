@@ -27,6 +27,41 @@ import xml.etree.ElementTree as ET
 def index(request):
     return HttpResponse("Hello, world. You're at the anilist index.")
 
+def anime_icon(request):
+  url = "https://graphql.anilist.co"
+  query = '''
+    query getAnimeIcons($animeid: Int) {
+        Media (id: $animeid) {
+        coverImage {
+            extraLarge
+            }
+        }
+    }
+    '''
+  
+  anime_id = request.GET.get('anime_id')
+
+  # check if anime in db has icon url
+  # if so return url
+  # if not get url, wait 2 seconds before returning
+  # TODO when adding new anime add the icon url
+
+  anime_in_db = Anime.objects.get(show_id=anime_id)
+
+  if(anime_in_db.icon_url != None):
+      # return the url
+      return HttpResponse(anime_in_db.icon_url , status=status.HTTP_200_OK)
+  else:
+    #add the url in 
+      response = requests.post(url, json={'query': query, 'variables': {"animeid" : anime_id}})
+      
+      icon_url = response.data['media']['coverImage']['extraLarge']
+
+      anime_in_db.icon_url = icon_url
+      anime_in_db.save()
+
+      return HttpResponse(icon_url, status=status.HTTP_200_OK)
+
 class AnimeList(APIView):
     
     def get(self, request):
@@ -95,6 +130,7 @@ def retrieve_anilist(user_name, status=''):
                     endDate {year,month,day}
                     season
                     seasonYear
+                    coverImage {extraLarge}
                     }
                 }
             }
@@ -128,13 +164,14 @@ def create_anime_list_db_objects(anime_list):
 
             # print(json.dumps(entry, indent=4))
 
-            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', []), ('status', 'NYR'), ('season', None), ('season_year', None)])
+            new_anime = OrderedDict([('show_id', -1), ('title', "TEMP"), ('alt_titles', []), ('status', 'NYR'), ('season', None), ('season_year', None), ('icon_url', None)])
             
             new_anime['show_id'] = entry['mediaId']
             new_anime['title'] = entry['media']['title']['romaji']
             new_anime['status'] = Anime.convert_status_to_db(entry['media']['status'])
             new_anime['season'] = entry['media']['season']
             new_anime['season_year'] = entry['media']['seasonYear']
+            new_anime['icon_url'] = entry['media']['coverImage']['extraLarge']
 
             # TODO debugging clutter, remove later
             # if(new_anime['show_id'] == 169441):
@@ -228,6 +265,9 @@ def has_new_anime_fields_changed(new_anime, anime_db_obj):
         has_changed = True
     if anime_db_obj.season_year != new_anime['season_year']:
         anime_db_obj.season_year = new_anime['season_year']
+        has_changed = True
+    if anime_db_obj.icon_url != new_anime['icon_url']:
+        anime_db_obj.icon_url = new_anime['icon_url']
         has_changed = True
     
     return has_changed

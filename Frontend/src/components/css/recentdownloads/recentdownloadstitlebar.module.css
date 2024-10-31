@@ -1,0 +1,104 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap");
+
+.titlebar {
+  color: whitesmoke;
+  font-family: "Exo 2", sans-serif;
+  font-weight: 666;
+  font-size: 17px;
+  font-style: normal;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 20%;
+  margin-right: 20%;
+
+  position: sticky;
+  top: 0px;
+  z-index: 100;
+
+  background-color: rgba(126, 118, 118, 0.77);
+  border-radius: 10px;
+}
+
+.icon {
+  margin-left: 3vw;
+  margin-right: 3vw;
+}
+
+.title {
+  text-align: center;
+  width: 45%;
+}
+
+.episodeNum {
+  margin-left: 0%;
+}
+
+.pubDate {
+  margin-right: 1%;
+}
+
+@media screen and (max-width: 1300px) {
+  .titlebar {
+    margin-left: 0%;
+    margin-right: 0%;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .icon {
+    font-size: 12px;
+    margin-inline: 2.55vw;
+  }
+
+  .title {
+    font-size: 12px;
+    text-align: center;
+    color: blue;
+  }
+
+  .episodeNum {
+    font-size: 12px;
+  }
+
+  .pubDate {
+    font-size: 12px;
+    margin-left: 4vw;
+    margin-right: 1vw;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .titlebar {
+    margin-left: 0%;
+    margin-right: 0%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon {
+    font-size: 12px;
+    margin: auto;
+    margin-left: 5vw;
+  }
+
+  .title {
+    text-align: center;
+    font-size: 12px;
+    margin: auto;
+    width: 35%;
+    color: green;
+  }
+
+  .episodeNum {
+    font-size: 12px;
+    margin-left: auto;
+  }
+
+  .pubDate {
+    font-size: 12px;
+    margin: auto;
+    margin-left: 1.5vw;
+  }
+}

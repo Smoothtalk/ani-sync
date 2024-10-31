@@ -1,0 +1,38 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap");
+
+.titleDiv {
+  margin-left: 0rem;
+  margin-right: 0rem;
+  width: 50%;
+  text-align: justify;
+}
+
+.title {
+  color: red;
+  font-family: "Exo 2", sans-serif;
+  font-weight: 666;
+  font-size: 17px;
+  font-style: normal;
+}
+
+@media screen and (max-width: 1300px) {
+  .titleDiv {
+    text-align: justify;
+  }
+
+  .title {
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .titleDiv {
+    text-align: justify;
+    margin-left: 2vw;
+    margin-right: 2vw;
+  }
+
+  .title {
+    font-size: 10px;
+  }
+}
