@@ -1,5 +1,6 @@
 body {
-  background-color: rgb(41, 41, 41);
+  background: linear-gradient(to right, #09013a, #014d5a); /* Add gradient */
+  font-family: "Roboto", sans-serif; /* Choose a modern font */
   margin-top: 3%;
   margin-left: 7.5%;
   margin-right: 7.5%;
