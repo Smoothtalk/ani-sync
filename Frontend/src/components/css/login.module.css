@@ -29,7 +29,7 @@
   font-weight: bold;
   text-align: center;
   background-color: rgba(0, 0, 0, 0);
-  color: gold;
+  color: rgb(235, 225, 225);
 }
 
 .loginInputUsername:focus {
@@ -38,6 +38,10 @@
 
 .loginInputUsername::placeholder {
   color: rgba(202, 211, 236, 0.15);
+}
+
+.loginInputUsername:focus::placeholder {
+  color: rgba(217, 226, 248, 0.5);
 }
 
 .loginSubmitButton {
@@ -59,6 +63,7 @@
 
 .loginSubmitButton:hover {
   background-color: #00b4a8;
+  color: rgb(243, 239, 239);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 

@@ -3,12 +3,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import RecentDownloads from "./pages/RecentDownloads";
 import { UserProvider } from "./context/UserContext";
+import NavBar from "./components/NavBar";
 
 function App() {
   return (
     <BrowserRouter>
-      {/* <RecentDownloadsTitleBar></RecentDownloadsTitleBar> */}
       <UserProvider>
+        <NavBar></NavBar>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/recent" element={<RecentDownloads />} />
