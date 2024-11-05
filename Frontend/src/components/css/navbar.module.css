@@ -2,3 +2,19 @@
   float: left;
   width: 200px;
 }
+
+.navBarDiv {
+}
+
+.navBarButton {
+  padding: 0;
+  border: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.navBarImg {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(to right, #08073c, #08083d); /* Add gradient */
+}

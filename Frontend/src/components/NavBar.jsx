@@ -16,8 +16,12 @@ export default function NavBar() {
   } else {
     return (
       <div className={style.navBarDiv}>
-        <button onClick={toggleNavBar}>
-          {navBarOpen ? "Close Nav" : "Open Nav"}
+        <button className={style.navBarButton} onClick={toggleNavBar}>
+          <img
+            src="../static/icons/menu_icon.png"
+            alt="Icon"
+            className={style.navBarImg}
+          ></img>
         </button>
         {navBarOpen && (
           <div className={style.navBarDiv}>
