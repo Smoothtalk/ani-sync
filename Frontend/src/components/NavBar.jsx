@@ -23,11 +23,7 @@ export default function NavBar() {
             className={style.navBarImg}
           ></img>
         </button>
-        {navBarOpen && (
-          <div className={style.navBarDiv}>
-            <Logout toggleNavBar={toggleNavBar} />
-          </div>
-        )}
+        {navBarOpen && <Logout toggleNavBar={toggleNavBar} />}
       </div>
     );
   }
