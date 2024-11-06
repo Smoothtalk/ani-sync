@@ -69,6 +69,11 @@
 
 /* Media queries for screens smaller than 1300px */
 @media screen and (max-width: 1300px) {
+  .loginDiv {
+    width: 100%;
+    margin-top: 25vh;
+    margin-left: 0vw;
+  }
   .login-form {
     width: 100%; /* Adjust the form width */
   }

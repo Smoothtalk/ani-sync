@@ -25,16 +25,16 @@
 
 /* Media queries for screens smaller than 1300px */
 @media screen and (max-width: 1300px) {
-  .logout-form {
-    width: 100%; /* Adjust the form width */
+  .logoutSubmitButton {
+    font-size: 15px;
+    padding: 10px;
   }
 }
 
 /* Media queries for screens smaller than 800px */
 @media screen and (max-width: 800px) {
-  .logout-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Space between input and button */
+  .logoutSubmitButton {
+    font-size: 10px;
+    padding: 5px;
   }
 }

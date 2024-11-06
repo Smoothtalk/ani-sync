@@ -1,9 +1,5 @@
 .navBarDiv {
   float: left;
-  width: 200px;
-}
-
-.navBarDiv {
 }
 
 .navBarButton {
@@ -17,4 +13,18 @@
   width: 24px;
   height: 24px;
   background: linear-gradient(to right, #08073c, #08083d); /* Add gradient */
+}
+
+/* Media queries for screens smaller than 1300px */
+@media screen and (max-width: 1300px) {
+  .navBarDiv {
+    float: none;
+  }
+}
+
+/* Media queries for screens smaller than 800px */
+@media screen and (max-width: 800px) {
+  .navBarDiv {
+    float: none;
+  }
 }
