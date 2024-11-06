@@ -20,8 +20,6 @@ class download_serializaer(serializers.ModelSerializer):
         fields = ['guid', 'anime', 'tid', 'release_title']
 
 class recent_download_serializer(serializers.ModelSerializer):
-    anime = serializers.PrimaryKeyRelatedField(queryset=Anime.objects.all())
-    release_title = serializers.CharField(source='guid.full_title', read_only=True)
     pub_date = serializers.SerializerMethodField()
     episode_num = serializers.SerializerMethodField()
     simple_title = serializers.CharField(source="guid.simple_title", read_only=True)
@@ -44,4 +42,4 @@ class recent_download_serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Download
-        fields = ['guid', 'anime', 'tid', 'release_title', 'pub_date', 'episode_num', "simple_title", "icon_url"]
+        fields = ['guid', 'pub_date', 'episode_num', "simple_title", "icon_url"]

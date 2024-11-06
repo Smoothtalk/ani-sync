@@ -1,0 +1,89 @@
+.loginDiv {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  margin-top: 25vh;
+  margin-left: 25vw;
+  margin-right: 25vw;
+  background-color: rgba(211, 211, 211, 0.226);
+  border-radius: 2cap;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 3vh; /* Space between input and button */
+}
+
+.loginInputUsername {
+  border: 2px solid #00b4d8;
+  border-radius: 25px;
+  padding: 10px 20px;
+  margin: 10px 0;
+  outline: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Adds depth */
+  transition: all 0.3s ease;
+  font-family: "Roboto", sans-serif; /* Choose a modern font */
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0);
+  color: rgb(235, 225, 225);
+}
+
+.loginInputUsername:focus {
+  border-color: #90e0ef;
+}
+
+.loginInputUsername::placeholder {
+  color: rgba(202, 211, 236, 0.15);
+}
+
+.loginInputUsername:focus::placeholder {
+  color: rgba(217, 226, 248, 0.5);
+}
+
+.loginSubmitButton {
+  align-self: center;
+  border: 2px solid #00d853;
+  border-radius: 25px;
+  padding: 10px 20px;
+  width: 80%;
+  margin: 10px 0;
+  outline: none;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1); /* Adds depth */
+  transition: all 0.3s ease;
+  font-family: "Roboto", sans-serif; /* Choose a modern font */
+  font-size: 20px;
+  font-weight: bold;
+  background-color: rgba(0, 0, 0, 0);
+  color: rgb(190, 181, 181);
+}
+
+.loginSubmitButton:hover {
+  background-color: #00b4a8;
+  color: rgb(243, 239, 239);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Media queries for screens smaller than 1300px */
+@media screen and (max-width: 1300px) {
+  .loginDiv {
+    width: 100%;
+    margin-top: 25vh;
+    margin-left: 0vw;
+  }
+  .login-form {
+    width: 100%; /* Adjust the form width */
+  }
+}
+
+/* Media queries for screens smaller than 800px */
+@media screen and (max-width: 800px) {
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Space between input and button */
+  }
+}

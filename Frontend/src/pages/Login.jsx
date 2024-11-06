@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
+import style from "../components/css/login.module.css";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,14 +14,18 @@ export default function Login() {
     navigate("/recent");
   }
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
+    <div className={style.loginDiv}>
+      <form className={style.loginForm} onSubmit={handleSubmit}>
         <input
+          className={style.loginInputUsername}
           type="text"
+          placeholder="Username"
           value={value}
           onChange={(e) => setValue(e.target.value)}
         ></input>
-        <button type="submit">Login</button>
+        <button className={style.loginSubmitButton} type="submit">
+          Login
+        </button>
       </form>
     </div>
   );

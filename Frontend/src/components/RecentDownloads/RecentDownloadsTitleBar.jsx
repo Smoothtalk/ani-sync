@@ -6,7 +6,6 @@ export default function RecentDownloadsTitleBar() {
 
   useEffect(() => {
     function handleResizePubDate() {
-      console.log(window.innerWidth);
       if (window.innerWidth < 1300) {
         setText("Date");
       } else {
