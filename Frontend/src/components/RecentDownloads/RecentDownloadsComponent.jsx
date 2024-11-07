@@ -3,12 +3,12 @@ import style from "../css/recentdownloads/recentdownloads.module.css";
 import { UserContext } from "../../context/UserContext";
 import { useEffect } from "react";
 import React, { useContext, useState } from "react";
-import { Navigate, redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 export default function RecentDownloadsComponent() {
   const URL = "/transmission/get_recent_downloads/?username=";
   const [animeData, setAnimeData] = useState([]);
-  const { user } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
   const [redirectToHome, setRedirectToHome] = useState(false);
 
   useEffect(() => {
@@ -25,6 +25,7 @@ export default function RecentDownloadsComponent() {
   }, []);
 
   if (redirectToHome) {
+    setUser("");
     return <Navigate to="/" replace />;
   }
 
