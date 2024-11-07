@@ -24,8 +24,14 @@ export default function RecentDownloadsComponent() {
     fetchDownloads();
   }, []);
 
+  useEffect(() => {
+    if (redirectToHome) {
+      alert(user + " is not a valid user");
+      setUser("");
+    }
+  }, [redirectToHome, setUser]);
+
   if (redirectToHome) {
-    setUser("");
     return <Navigate to="/" replace />;
   }
 
