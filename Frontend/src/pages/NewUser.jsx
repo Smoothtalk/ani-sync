@@ -21,34 +21,19 @@ export default function NewUser() {
       //make a post request
       //${user}
 
-      const csrfToken = Cookies.get("csrftoken");
-
-      if (!csrfToken) {
-        //gen csrftoken
-      }
-
-      console.log(csrfToken);
-
       const res = await fetch(`${URL}`, {
         method: "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          "X-CSRFToken": Cookies.get("csrftoken"),
         },
-        body: JSON.stringify({ firstParam: "asss", secondParam: "b" }),
+        body: JSON.stringify({ user: user, discord_id: inputDiscordId }),
       });
+
       if (res.status === 200) {
         //check if discord id is valid???
-        //call backend to create new user in db
-
-        // const data = await res.json();
-        // navigate("/recent");
-        console.log("url 200");
-
-        //testing lines below
-        setUser("");
-        navigate("/");
+        setUser(user);
+        navigate("/recent");
       } else if (res.status === 404) {
         //error creating user
         setUser("");

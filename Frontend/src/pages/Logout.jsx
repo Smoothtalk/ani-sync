@@ -9,6 +9,8 @@ export default function Logout(props) {
   const { toggleNavBar, location } = props;
 
   function logout() {
+    document.cookie =
+      "csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
     setUser("");
     navigate("/");
     {
