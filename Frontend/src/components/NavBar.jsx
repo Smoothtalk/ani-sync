@@ -13,10 +13,12 @@ export default function NavBar() {
     setNavBarOpen((prevState) => !prevState);
   }
 
-  if (user === "") {
-    return null;
-  } else {
-    if (location.pathname !== "/") {
+  console.log(location.pathname);
+
+  switch (location.pathname) {
+    case "/":
+      return null;
+    default:
       return (
         <div className={style.navBarDiv}>
           <button className={style.navBarButton} onClick={toggleNavBar}>
@@ -26,11 +28,10 @@ export default function NavBar() {
               className={style.navBarImg}
             ></img>
           </button>
-          {navBarOpen && <Logout toggleNavBar={toggleNavBar} />}
+          {navBarOpen && (
+            <Logout toggleNavBar={toggleNavBar} location={location.pathname} />
+          )}
         </div>
       );
-    } else {
-      return null;
-    }
   }
 }

@@ -6,7 +6,7 @@ import style from "../components/css/logout.module.css";
 export default function Logout(props) {
   const navigate = useNavigate();
   const { setUser } = useContext(UserContext); //get user from context
-  const { toggleNavBar } = props;
+  const { toggleNavBar, location } = props;
 
   function logout() {
     setUser("");
@@ -16,10 +16,12 @@ export default function Logout(props) {
     }
   }
 
+  const buttonText = location === "/recent" ? "Logout" : "Return";
+
   return (
     <div className={style.logoutDiv}>
       <button className={style.logoutSubmitButton} onClick={logout}>
-        Logout
+        {buttonText}
       </button>
     </div>
   );

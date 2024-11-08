@@ -16,7 +16,7 @@ export default function Login() {
       setUser(value);
       navigate("/recent");
     } else {
-      navigate("newuser");
+      navigate("/newuser");
     }
   }
 

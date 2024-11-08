@@ -45,7 +45,7 @@
 }
 
 .loginDiscordId {
-  border: 2px solid #00b4d8;
+  border: 2px solid #434bbd;
   border-radius: 25px;
   padding: 10px 20px;
   margin: 10px 0;
@@ -61,7 +61,7 @@
 }
 
 .loginDiscordId:focus {
-  border-color: #90e0ef;
+  border-color: #5e68ff;
 }
 
 .loginDiscordId::placeholder {
