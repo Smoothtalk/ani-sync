@@ -3,6 +3,8 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Case, When, Value, IntegerField, Q
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -11,7 +13,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from anilist.models import *
-from anilist.serializers import anime_serializer, user_anime_serializer
+from anilist.serializers import *
 
 from bs4 import BeautifulSoup
 
@@ -67,19 +69,29 @@ def check_login(request):
     user_in_db = AniList_User.objects.filter(user_name=user).exists()
 
     if(user_in_db):
-        return HttpResponse(status=status.HTTP_200_OK)
+        csrf_token = get_token(request)
+        return JsonResponse({'csrftoken': csrf_token},status=status.HTTP_200_OK)
     else:
         return HttpResponse(status=status.HTTP_410_GONE)
 
+@csrf_exempt
 def create_user(request):
     if request.method == 'POST':
         try:
             data = JSONParser().parse(request)  # Parse JSON data
-            first_param = data.get("firstParam")
-            second_param = data.get("secondParam")
-            print(first_param)
-            # # Process or save the data as needed
-            return JsonResponse({"message": "User created successfully!"}, status=status.HTTP_200_OK)
+            user = data.get("user")
+            discord_id = data.get("discord_id")
+
+            new_user = {"user_name": user, "discord_user_id": discord_id}
+
+            serializer = anilist_user_serializer(data=new_user) 
+
+            if serializer.is_valid():
+                csrf_token = get_token(request)
+                serializer.save()
+                return JsonResponse({"message": "User created successfully!", 'csrftoken': csrf_token}, status=status.HTTP_200_OK)
+            else:
+                return JsonResponse({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     else:
