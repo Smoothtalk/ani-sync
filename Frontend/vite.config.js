@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/transmission": "http://localhost:8000",
-      "/anilist": "http://localhost:8000",
+      "/transmission": { target: "http://localhost:8000", changeOrigin: false },
+      "/anilist": { target: "http://localhost:8000", changeOrigin: false },
     },
   },
 });
