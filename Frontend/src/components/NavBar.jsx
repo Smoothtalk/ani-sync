@@ -13,8 +13,6 @@ export default function NavBar() {
     setNavBarOpen((prevState) => !prevState);
   }
 
-  console.log(location.pathname);
-
   switch (location.pathname) {
     case "/":
       return null;
