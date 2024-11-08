@@ -61,6 +61,29 @@ def anime_icon(request):
       anime_in_db.save()
 
       return HttpResponse(icon_url, status=status.HTTP_200_OK)
+  
+def check_login(request):
+    user = request.GET.get('user')
+    user_in_db = AniList_User.objects.filter(user_name=user).exists()
+
+    if(user_in_db):
+        return HttpResponse(status=status.HTTP_200_OK)
+    else:
+        return HttpResponse(status=status.HTTP_410_GONE)
+
+def create_user(request):
+    if request.method == 'POST':
+        try:
+            data = JSONParser().parse(request)  # Parse JSON data
+            first_param = data.get("firstParam")
+            second_param = data.get("secondParam")
+            print(first_param)
+            # # Process or save the data as needed
+            return JsonResponse({"message": "User created successfully!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return JsonResponse({"error": "Only POST requests are allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 class AnimeList(APIView):
     
