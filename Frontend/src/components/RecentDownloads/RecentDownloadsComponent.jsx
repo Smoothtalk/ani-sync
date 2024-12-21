@@ -11,7 +11,7 @@ export default function RecentDownloadsComponent() {
 
   useEffect(() => {
     async function fetchDownloads() {
-      const res = await fetch(`${URL}${user}`);
+      const res = await fetch(`${URL}${user.username}`);
       if (res.status === 200) {
         const data = await res.json();
         setAnimeData(data);
