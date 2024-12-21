@@ -2,18 +2,18 @@ import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import style from "../components/css/newuser.module.css";
-import Cookies from "js-cookie";
 
 export default function NewUser() {
   const navigate = useNavigate();
-  const URL = "/anilist/create_user/";
+  const URL = "/user/new_user/";
   const [inputNewUserName, setInputNewUsername] = useState(""); //input field updating methods
+  const [inputNewPassword, setInputNewPassword] = useState(""); //input field updating methods
   const [inputDiscordId, setInputDiscordId] = useState(""); //input field updating methods
   const { user, setUser } = useContext(UserContext); //get user from context
 
   function handleSubmit(e) {
     e.preventDefault();
-    setUser(inputNewUserName);
+    setUser({ username: inputNewUserName, password: inputNewPassword });
   }
 
   useEffect(() => {
@@ -27,25 +27,28 @@ export default function NewUser() {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user: user, discord_id: inputDiscordId }),
+        body: JSON.stringify({
+          username: user.username,
+          password: user.password,
+          discord_id: inputDiscordId,
+        }),
       });
 
       if (res.status === 200) {
         //check if discord id is valid???
-        setUser(user);
         navigate("/recent");
-      } else if (res.status === 404) {
+      } else {
         //error creating user
-        setUser("");
+        setUser({});
         setInputNewUsername("");
         setInputDiscordId("");
       }
     }
 
-    if (user) {
+    if (user?.username && user?.password) {
       createNewUser();
     }
-  }, [user]);
+  }, [user.username, user.password]);
 
   return (
     <div className={style.newUserDiv}>
@@ -56,6 +59,13 @@ export default function NewUser() {
           placeholder="Username"
           value={inputNewUserName}
           onChange={(e) => setInputNewUsername(e.target.value)}
+        ></input>
+        <input
+          className={style.inputNewUsername}
+          type="text"
+          placeholder="Password"
+          value={inputNewPassword}
+          onChange={(e) => setInputNewPassword(e.target.value)}
         ></input>
         <input
           className={style.loginDiscordId}

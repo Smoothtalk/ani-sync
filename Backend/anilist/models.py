@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 FINISHED = "FIN"
 RELEASING = "REL"
@@ -45,7 +46,8 @@ WATCHING_STATUS = [
 
 # Create your models here.
 class AniList_User(models.Model):
-    user_name = models.CharField(max_length=200)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    user_name = models.CharField(max_length=200, unique=True)
     discord_user_id = models.CharField(max_length=32, null=True, blank=True)
 
     def __str__(self):

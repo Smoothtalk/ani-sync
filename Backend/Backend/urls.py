@@ -20,9 +20,12 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("user/new_user/", views.new_user, name="new_user"),
+    path("user/login/", views.login_user, name="login_user"),
+    path("user/logout/", views.logout_user, name="logout_user"),
     path('admin/', admin.site.urls),
     path("transmission/", include("transmission.urls")),    
     path("anilist/", include("anilist.urls")),
     path("subsplease/", include("subsplease.urls")),
-    path("discord_api/", include("discord_api.urls"))    
+    path("discord_api/", include("discord_api.urls")),
 ]

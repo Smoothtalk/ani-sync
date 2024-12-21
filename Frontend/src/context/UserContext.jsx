@@ -2,11 +2,11 @@ import React, { useState, createContext, useEffect } from "react";
 const UserContext = createContext("Guest");
 
 function UserProvider({ children }) {
-  const storedUser = localStorage.getItem("user");
-  const [user, setUser] = useState(storedUser || "");
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const [user, setUser] = useState(storedUser || {});
 
   useEffect(() => {
-    localStorage.setItem("user", user);
+    localStorage.setItem("user", JSON.stringify(user));
   }, [user]);
 
   return (

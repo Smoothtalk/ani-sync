@@ -8,6 +8,18 @@ export default defineConfig({
     proxy: {
       "/transmission": { target: "http://localhost:8000", changeOrigin: false },
       "/anilist": { target: "http://localhost:8000", changeOrigin: false },
+      "/user/new_user": {
+        target: "http://localhost:8000",
+        changeOrigin: false,
+      },
+      "/user/login": {
+        target: "http://localhost:8000",
+        changeOrigin: false,
+      },
+      "/user/logout": {
+        target: "http://localhost:8000",
+        changeOrigin: false,
+      },
     },
   },
 });

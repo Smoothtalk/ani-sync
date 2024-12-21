@@ -92,6 +92,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # React development server
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+CSRF_COOKIE_HTTPONLY = False 
+CSRF_COOKIE_SECURE = False
+
+CSRF_COOKIE_NAME = 'csrftoken'  # The cookie that stores the CSRF token
+CSRF_HEADER_NAME = 'X-CSRFToken'  # The header name used for CSRF token in requests
+
 WSGI_APPLICATION = 'Backend.wsgi.application'
 
 
