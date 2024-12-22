@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from rest_framework.parsers import JSONParser
 from rest_framework import status
@@ -14,7 +14,23 @@ from rest_framework import status
 def index(request):
     return HttpResponse("Hello, world. You're at the Backend index.")
 
-@csrf_exempt
+@csrf_protect
+def login_user(request):
+    # print(request.headers)
+    print("CSRF Cookie:", request.COOKIES.get("csrftoken"))
+    if request.method == "POST": 
+        req_username = request.POST.get("username") 
+        req_password = request.POST.get('password')
+
+        user_in_db = authenticate(request=request, username=req_username, password=req_password)
+
+        if(user_in_db is not None):
+            login(request, user_in_db)
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+        
+    return HttpResponse(status=status.HTTP_410_GONE)
+
+@csrf_protect  
 def new_user(request):
     if request.method == 'POST':
         try:
@@ -41,20 +57,17 @@ def new_user(request):
             return JsonResponse({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     else:
         return JsonResponse({"error": "Only POST requests are allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    
-@ensure_csrf_cookie   
-def login_user(request):
-    req_username = request.GET.get('username')
-    req_password = request.GET.get('password')
-    user_in_db = authenticate(request=request, username=req_username, password=req_password)
 
-    if(user_in_db is not None):
-        login(request, user_in_db)
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
-    else:
-        return HttpResponse(status=status.HTTP_410_GONE)
-
-@ensure_csrf_cookie   
+@csrf_protect   
 def logout_user(request):
     logout(request)  # Clears the session and removes sessionid
-    return JsonResponse({'message': 'Logged out successfully'})
+    
+    response = JsonResponse({'message': 'Logged out successfully'})
+    response.delete_cookie("csrftoken")
+    
+    return response
+
+@ensure_csrf_cookie  
+def serve_csrf_cookie(request):
+    token = get_token(request)
+    return JsonResponse({"csrfToken": token})

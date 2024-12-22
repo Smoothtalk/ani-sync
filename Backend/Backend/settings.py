@@ -59,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
 ]
 
 ROOT_URLCONF = 'Backend.urls'
@@ -90,7 +91,7 @@ TEMPLATES = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # React development server
-]
+    ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
@@ -98,9 +99,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 CSRF_COOKIE_HTTPONLY = False 
 CSRF_COOKIE_SECURE = False
-
-CSRF_COOKIE_NAME = 'csrftoken'  # The cookie that stores the CSRF token
-CSRF_HEADER_NAME = 'X-CSRFToken'  # The header name used for CSRF token in requests
+CSRF_USE_SESSIONS = False    
 
 WSGI_APPLICATION = 'Backend.wsgi.application'
 

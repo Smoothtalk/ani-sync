@@ -20,6 +20,7 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("csrf/", views.serve_csrf_cookie, name="serve_csrf_cookie"),
     path("user/new_user/", views.new_user, name="new_user"),
     path("user/login/", views.login_user, name="login_user"),
     path("user/logout/", views.logout_user, name="logout_user"),
