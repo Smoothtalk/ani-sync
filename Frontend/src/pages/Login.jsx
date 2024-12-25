@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
+import ClipLoader from "react-spinners/ClipLoader";
 import style from "../components/css/login.module.css";
 
 export default function Login() {
@@ -8,6 +9,7 @@ export default function Login() {
   const [userValue, setUserValue] = useState(""); //input field updating methods
   const [passwordValue, setPasswordValue] = useState(""); //input field updating methods
   const { user, setUser } = useContext(UserContext); //get user from context
+  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
   const URL = "/user/login/";
 
   function handleSubmit(e) {
@@ -17,6 +19,7 @@ export default function Login() {
 
     if (buttonName === "login") {
       setUser({ username: userValue, password: passwordValue });
+      setIsLoadingVisible(!isLoadingVisible);
     } else {
       navigate("/newuser");
     }
@@ -109,6 +112,16 @@ export default function Login() {
           New User
         </button>
       </form>
+      <div
+        className={isLoadingVisible ? style.loadingDivShow : style.loadingDiv}
+      >
+        <ClipLoader
+          size={45}
+          color={"#ffffff"}
+          loading={isLoadingVisible}
+          speedMultiplier={1}
+        />
+      </div>
     </div>
   );
 }
