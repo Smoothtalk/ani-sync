@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import style from "../components/css/newuser.module.css";
+import ClipLoader from "react-spinners/ClipLoader";
 
 export default function NewUser() {
   const navigate = useNavigate();
@@ -10,10 +11,20 @@ export default function NewUser() {
   const [inputNewPassword, setInputNewPassword] = useState(""); //input field updating methods
   const [inputDiscordId, setInputDiscordId] = useState(""); //input field updating methods
   const { user, setUser } = useContext(UserContext); //get user from context
+  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
 
   function handleSubmit(e) {
     e.preventDefault();
     setUser({ username: inputNewUserName, password: inputNewPassword });
+  }
+
+  function getCSRFToken() {
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+      const [name, value] = cookie.split("=");
+      if (name === "csrftoken") return value;
+    }
+    return null;
   }
 
   useEffect(() => {
@@ -24,15 +35,18 @@ export default function NewUser() {
       const res = await fetch(`${URL}`, {
         method: "POST",
         headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": getCSRFToken(),
         },
+        credentials: "include",
         body: JSON.stringify({
           username: user.username,
           password: user.password,
           discord_id: inputDiscordId,
         }),
       });
+
+      setIsLoadingVisible(!isLoadingVisible);
 
       if (res.status === 200) {
         //check if discord id is valid???
@@ -41,6 +55,7 @@ export default function NewUser() {
         //error creating user
         setUser({});
         setInputNewUsername("");
+        setInputNewPassword("");
         setInputDiscordId("");
       }
     }
@@ -77,6 +92,16 @@ export default function NewUser() {
         <button className={style.newUserSubmitButton} type="submit">
           Create New User
         </button>
+        <div
+          className={isLoadingVisible ? style.loadingDivShow : style.loadingDiv}
+        >
+          <ClipLoader
+            size={45}
+            color={"#ffffff"}
+            loading={isLoadingVisible}
+            speedMultiplier={1}
+          />
+        </div>
       </form>
     </div>
   );

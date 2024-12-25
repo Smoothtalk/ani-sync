@@ -25,6 +25,11 @@ export default function Login() {
     }
   }
 
+  function checkCookieExists(cookieName) {
+    const cookies = document.cookie.split(";");
+    return cookies.some((cookie) => cookie.trim().startsWith(`${cookieName}=`));
+  }
+
   useEffect(() => {
     //function to call api to see if valid user exists in db
     async function checkLogin() {
@@ -46,6 +51,7 @@ export default function Login() {
         setUser({});
         setUserValue("");
         setPasswordValue("");
+        setIsLoadingVisible(!isLoadingVisible);
       }
     }
 
@@ -72,7 +78,9 @@ export default function Login() {
       }
     }
 
-    fetchCsrfToken();
+    if (!checkCookieExists("csrftoken")) {
+      fetchCsrfToken();
+    }
   }, []);
 
   // function newUser() {

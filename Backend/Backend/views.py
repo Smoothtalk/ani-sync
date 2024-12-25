@@ -8,6 +8,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from rest_framework.parsers import JSONParser
 from rest_framework import status
+
+from collections import OrderedDict
+from anilist.serializers import *
 # Create your views here.
 
 
@@ -33,27 +36,41 @@ def login_user(request):
 @csrf_protect  
 def new_user(request):
     if request.method == 'POST':
+
         try:
             data = JSONParser().parse(request)  # Parse JSON data
             username = data.get("username")
             password = data.get("password")
             discord_id = data.get("discord_id")
 
-            print("logging in password: " + 's')
-
-            new_user = {"username": username, "password": password, "discord_user_id": discord_id}
-            
-            # Create a django user here and link it to anilist_user
+            # Create a django user 
             django_user = User.objects.create_user(username=username, password=password)
             django_user.save()
 
-            csrf_token = get_token(request)
+            try:
+                anilist_user = AniList_User.objects.get(user_name=username)
+                print(anilist_user)
+                anilist_user.user = django_user
+                # add django user to anilist_user
+                # continue on
+            except AniList_User.DoesNotExist:
+                print("User DNE")
+                anilist_user = OrderedDict([("user", django_user.pk), ("user_name", username), ("discord_user_id", discord_id)])
+
+            #link to anilist user
+            serializer = anilist_user_serializer(data=anilist_user)
+
+            if serializer.is_valid():
+                serializer.save() 
+            else:
+                print(serializer.errors)
 
             login(request, django_user)
             
             return JsonResponse({"message": "User created successfully!"}, status=status.HTTP_200_OK)
         
         except Exception as e:
+            print(str(e))
             return JsonResponse({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     else:
         return JsonResponse({"error": "Only POST requests are allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)

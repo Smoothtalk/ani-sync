@@ -5,12 +5,15 @@ import RecentDownloads from "./pages/RecentDownloads";
 import NavBar from "./components/NavBar";
 import NewUser from "./pages/NewUser";
 import { UserProvider } from "./context/UserContext";
+import { NavBarProvider } from "./context/NavBarContext";
 
 function App() {
   return (
     <BrowserRouter>
       <UserProvider>
-        <NavBar></NavBar>
+        <NavBarProvider>
+          <NavBar></NavBar>
+        </NavBarProvider>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/recent" element={<RecentDownloads />} />

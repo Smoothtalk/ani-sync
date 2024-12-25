@@ -95,6 +95,18 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+.loadingDiv {
+  position: absolute;
+  display: none;
+  z-index: 2;
+}
+
+.loadingDivShow {
+  position: absolute;
+  display: block;
+  z-index: 2;
+}
+
 /* Media queries for screens smaller than 1300px */
 @media screen and (max-width: 1300px) {
   .loginDiv {
