@@ -6,8 +6,24 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/transmission": "http://localhost:8000",
-      "/anilist": "http://localhost:8000",
+      "/transmission": { target: "http://localhost:8000", changeOrigin: false },
+      "/anilist": { target: "http://localhost:8000", changeOrigin: false },
+      "/csrf/": {
+        target: "http://localhost:8000",
+        changeOrigin: false,
+      },
+      "/user/new_user": {
+        target: "http://localhost:8000",
+        changeOrigin: false,
+      },
+      "/user/login": {
+        target: "http://localhost:8000",
+        changeOrigin: false,
+      },
+      "/user/logout": {
+        target: "http://localhost:8000",
+        changeOrigin: false,
+      },
     },
   },
 });

@@ -1,28 +1,17 @@
-from django.shortcuts import render
-from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from django.db.models import Case, When, Value, IntegerField, Q
 
 from rest_framework import status
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from anilist.models import *
-from anilist.serializers import anime_serializer, user_anime_serializer
-
-from bs4 import BeautifulSoup
-
-from graphql import parse, execute
-from graphql.language.printer import print_ast
+from anilist.serializers import *
 
 from collections import OrderedDict
 
 import requests
 import json
-import xml.etree.ElementTree as ET
 
 def index(request):
     return HttpResponse("Hello, world. You're at the anilist index.")

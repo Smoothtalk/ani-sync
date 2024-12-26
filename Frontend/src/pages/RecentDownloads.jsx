@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 
 export default function RecentDownloads() {
   const { user } = useContext(UserContext);
-  if (user != "") {
+  if (user?.username) {
     return (
       <div>
         <RecentDownloadsTitleBar />

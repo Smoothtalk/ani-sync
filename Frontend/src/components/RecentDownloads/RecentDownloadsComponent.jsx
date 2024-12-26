@@ -3,30 +3,24 @@ import style from "../css/recentdownloads/recentdownloads.module.css";
 import { UserContext } from "../../context/UserContext";
 import { useEffect } from "react";
 import React, { useContext, useState } from "react";
-import { Navigate, redirect } from "react-router-dom";
 
 export default function RecentDownloadsComponent() {
   const URL = "/transmission/get_recent_downloads/?username=";
   const [animeData, setAnimeData] = useState([]);
-  const { user } = useContext(UserContext);
-  const [redirectToHome, setRedirectToHome] = useState(false);
+  const { user, setUser } = useContext(UserContext);
 
   useEffect(() => {
     async function fetchDownloads() {
-      const res = await fetch(`${URL}${user}`);
+      const res = await fetch(`${URL}${user.username}`);
       if (res.status === 200) {
         const data = await res.json();
         setAnimeData(data);
       } else {
-        setRedirectToHome(true);
+        //handle errors here
       }
     }
     fetchDownloads();
   }, []);
-
-  if (redirectToHome) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <div className={style.entries}>
