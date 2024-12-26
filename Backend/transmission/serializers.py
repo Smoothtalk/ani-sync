@@ -24,6 +24,7 @@ class recent_download_serializer(serializers.ModelSerializer):
     episode_num = serializers.SerializerMethodField()
     simple_title = serializers.CharField(source="guid.simple_title", read_only=True)
     icon_url = serializers.CharField(source='anime.icon_url')
+    anime = serializers.PrimaryKeyRelatedField(queryset=Anime.objects.all())
 
     def get_episode_num(self, obj):
         # prevent cyclic import
@@ -42,4 +43,4 @@ class recent_download_serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Download
-        fields = ['guid', 'pub_date', 'episode_num', "simple_title", "icon_url"]
+        fields = ['guid', 'anime', 'pub_date', 'episode_num', "simple_title", "icon_url"]
