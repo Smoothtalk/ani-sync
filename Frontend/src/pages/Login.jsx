@@ -3,6 +3,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import ClipLoader from "react-spinners/ClipLoader";
 import style from "../components/css/login.module.css";
+import bcrypt from "bcryptjs";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function Login() {
     const buttonName = clickedButton.name;
 
     if (buttonName === "login") {
-      setUser({ username: userValue, password: passwordValue });
+      setUser({ username: userValue });
       setIsLoadingVisible(!isLoadingVisible);
     } else {
       navigate("/newuser");
@@ -28,6 +29,15 @@ export default function Login() {
   function checkCookieExists(cookieName) {
     const cookies = document.cookie.split(";");
     return cookies.some((cookie) => cookie.trim().startsWith(`${cookieName}=`));
+  }
+
+  function getCSRFToken() {
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+      const [name, value] = cookie.split("=");
+      if (name === "csrftoken") return value;
+    }
+    return null;
   }
 
   useEffect(() => {
@@ -41,8 +51,8 @@ export default function Login() {
         },
         credentials: "include",
         body: new URLSearchParams({
-          username: user.username,
-          password: user.password,
+          username: userValue,
+          password: passwordValue,
         }),
       });
       if (res.status === 200) {
@@ -55,7 +65,7 @@ export default function Login() {
       }
     }
 
-    if (user?.username && user?.password) {
+    if (userValue && passwordValue) {
       checkLogin();
     }
   }, [user.username, user.password]);
@@ -86,15 +96,6 @@ export default function Login() {
   // function newUser() {
   //   return <Navigate to="/newuser" replace />;
   // }
-
-  function getCSRFToken() {
-    const cookies = document.cookie.split("; ");
-    for (const cookie of cookies) {
-      const [name, value] = cookie.split("=");
-      if (name === "csrftoken") return value;
-    }
-    return null;
-  }
 
   return (
     <div className={style.loginDiv}>

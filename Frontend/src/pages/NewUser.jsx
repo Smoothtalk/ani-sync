@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import style from "../components/css/newuser.module.css";
 import ClipLoader from "react-spinners/ClipLoader";
+import bcrypt from "bcryptjs";
 
 export default function NewUser() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export default function NewUser() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    setUser({ username: inputNewUserName, password: inputNewPassword });
+    setUser({ username: inputNewUserName });
   }
 
   function getCSRFToken() {
@@ -40,8 +41,8 @@ export default function NewUser() {
         },
         credentials: "include",
         body: JSON.stringify({
-          username: user.username,
-          password: user.password,
+          username: inputNewUserName,
+          password: inputNewPassword,
           discord_id: inputDiscordId,
         }),
       });
@@ -60,10 +61,10 @@ export default function NewUser() {
       }
     }
 
-    if (user?.username && user?.password) {
+    if (inputNewUserName && inputNewPassword) {
       createNewUser();
     }
-  }, [user.username, user.password]);
+  }, [user?.username]);
 
   return (
     <div className={style.newUserDiv}>

@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import check_password
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from rest_framework.parsers import JSONParser
@@ -20,18 +21,26 @@ def index(request):
 @csrf_protect
 def login_user(request):
     # print(request.headers)
-    print("CSRF Cookie:", request.COOKIES.get("csrftoken"))
     if request.method == "POST": 
         req_username = request.POST.get("username") 
         req_password = request.POST.get('password')
 
-        user_in_db = authenticate(request=request, username=req_username, password=req_password)
+        try:
+            user = User.objects.get(username=req_username)
+        except User.DoesNotExist:
+            return HttpResponse(status=status.HTTP_410_GONE)
 
-        if(user_in_db is not None):
-            login(request, user_in_db)
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
+        if check_password(req_password, user.password):
+            return HttpResponse({"message": "Login successful."}, status=200)
+        else:
+            return HttpResponse({"message": "Wrong Password."}, status=status.HTTP_400_BAD_REQUEST)
+    # user_in_db = authenticate(request=request, username=req_username, password=req_password)
+
+    # if(user_in_db is not None):
+    #     login(request, user_in_db)
+    #     return JsonResponse(data={}, status=status.HTTP_200_OK)
         
-    return HttpResponse(status=status.HTTP_410_GONE)
+    # return HttpResponse(status=status.HTTP_410_GONE)
 
 @csrf_protect  
 def new_user(request):
