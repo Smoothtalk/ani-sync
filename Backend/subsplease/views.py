@@ -161,7 +161,13 @@ def find_anilist_showid_from_title(release_title, anime_titles):
             user_anime_obj = anime_title_match | alt_title_match | custom_title_match
 
             if(user_anime_obj.exists()):
-                return user_anime_obj.get().show_id_id
+                #if two titles return check
+                if len(user_anime_obj) > 1:
+                    for user_anime in user_anime_obj:
+                        if user_anime.watching_status == "CUR" or user_anime.watching_status == "PLN":
+                            return user_anime.show_id_id
+                else:
+                    return user_anime_obj.get().show_id_id
             else:
                 return user_anime_obj
 
