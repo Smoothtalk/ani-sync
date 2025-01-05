@@ -3,7 +3,6 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import ClipLoader from "react-spinners/ClipLoader";
 import style from "../components/css/login.module.css";
-import bcrypt from "bcryptjs";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -109,7 +108,7 @@ export default function Login() {
         ></input>
         <input
           className={style.loginInputUsername}
-          type="text"
+          type="password"
           placeholder="Password"
           value={passwordValue}
           onChange={(e) => setPasswordValue(e.target.value)}
