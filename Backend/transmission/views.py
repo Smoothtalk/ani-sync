@@ -208,31 +208,34 @@ def move_to_remote_file_server(torrent, download, remote_download_dir, host_down
     command = ("mkdir -p " 
                +'\'' + remote_download_dir + release_obj.simple_title + '\'')
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-    print("Command: " + command)
-    print("STDOUT: " + stdout.read().decode())
-    print("STDERR: " + stderr.read().decode())
+    # print("Command: " + command)
+    # print("STDOUT: " + stdout.read().decode())
+    # print("STDERR: " + stderr.read().decode())
 
     command = ("chown 1000:1000 "
                + '\'' + remote_download_dir + release_obj.simple_title + '\''
                 )
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
+    # print("Command: " + command)
+    # print("STDOUT: " + stdout.read().decode())
+    # print("STDERR: " + stderr.read().decode())
 
     # command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
     # TODO write documentation about gcp
-    command = ("cp " 
+    command = ("cp -v " 
                '\'' + host_download_dir + '/' + torrent.name + '\'' 
                + ' '
                +'\'' + remote_download_dir + release_obj.simple_title + '\''
                )
-    print("Command: " + command)
-    print("STDOUT: " + stdout.read().decode())
-    print("STDERR: " + stderr.read().decode())
+    # print("Command: " + command)
+    # print("STDOUT: " + stdout.read().decode())
+    # print("STDERR: " + stderr.read().decode())
     
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
 
     # need to confirm that the cp is done
     exit_status = stdout.channel.recv_exit_status()  
-
+    
     if exit_status == 0:
         command = ("mv " 
         + '\'' + remote_download_dir + release_obj.simple_title + '/' + torrent.name + '\'' 
