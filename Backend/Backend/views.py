@@ -15,7 +15,7 @@ from anilist.serializers import *
 
 
 def index(request):
-    return HttpResponse("Hello, world. You're at the Backend index.")
+    return HttpResponse("Hello, world. You're at the Live Backend index.")
 
 @csrf_protect
 def login_user(request):

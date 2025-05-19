@@ -5,6 +5,7 @@ import environ
 import threading
 import re
 import requests
+import time
 
 from cryptography.fernet import Fernet
 
@@ -25,6 +26,8 @@ from transmission.models import *
 from transmission.serializers import download_serializaer, recent_download_serializer
 from subsplease.models import Url
 from anilist.models import User_Anime, AniList_User
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 def index(request):
     return HttpResponse("Hello, world. You're at the transmission index.")
@@ -77,6 +80,8 @@ class Recent_Download_Torrents(APIView):
             return Response(serialized_downloads.data, status=status.HTTP_200_OK)
 
 class Download_Torrents(APIView):
+    lock = threading.Lock()
+
     def get(self, request):
         transmission_obj = Setting.objects.get()
         transmission_client = connect_to_transmission(transmission_obj.address, transmission_obj.port)
@@ -92,14 +97,24 @@ class Download_Torrents(APIView):
 
         # from main thread spawn a new monitor thread
         # once all threads are done
-        for torrent_download_dict in torrents:
-            thread = threading.Thread(target=monitor_torrent, args=(transmission_client, torrent_download_dict,))
-            thread.start()
-            threads.append(thread)
+        # print("torrents: ")
+        # print(torrents)
+        
+        # Use ThreadPoolExecutor for managing threads
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            # Submit monitor_torrent tasks to the executor
+            futures = [
+                executor.submit(monitor_torrent, transmission_client, torrent_download_dict)
+                for torrent_download_dict in torrents
+            ]
 
-        # block till all syncing is done
-        for thread in threads:
-            thread.join()
+            # Wait for all threads to complete
+            for future in as_completed(futures):
+                try:
+                    result = future.result()  # Retrieves the result or raises an exception if one occurred
+                    print(f"Thread result: {result}")
+                except Exception as e:
+                    print(f"Error occurred in thread: {str(e)}")
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
 
@@ -167,38 +182,47 @@ def monitor_torrent(transmission_client, torrent_download_dict):
     client_torrent = transmission_client.get_torrent(torrent.hash_string)
 
     # might need to adjust this
-    while(not client_torrent.seeding and client_torrent.progress < 100.00):
+    while(client_torrent.progress < 100.00 and (not client_torrent.seeding or client_torrent.stopped)):
+        print(client_torrent.progress)
         client_torrent = transmission_client.get_torrent(torrent.hash_string)
+        time.sleep(1)
 
     transmission_obj = Setting.objects.get()
     transmission_host_connection = connect_to_transmission_host(transmission_obj.address, transmission_obj.host_download_username, transmission_obj.ssh_key_path, transmission_obj.ssh_key_passphrase)
-    
-    move_to_remote_file_server(torrent, download, transmission_obj.remote_download_dir, transmission_obj.host_download_dir, transmission_host_connection)
-    delete_new_download_from_transmission(transmission_client, torrent)
-   
-    print("Done syncing: " + torrent.name)
 
-    add_tid_to_download(torrent, download)
-
-    # send async post api discord here later
-    post_data = {
-    'torrent': {
-        'hash_string': torrent.hash_string,
-        'name': torrent.name
-        }
-    }
-
-    # Call Discord post method via internal POST request
     try:
-        response = requests.post('http://localhost:8000/discord_api/announce_to_discord/', json=post_data)  # Assuming you're running locally
-        if response.status_code == 200:
-            print(response.text)
-        else:
-            print(response.text)
-    except Exception as e:
-        print(f"Error occurred while calling Discord API: {str(e)}")
+        move_to_remote_file_server(torrent, download, transmission_obj, transmission_host_connection)
 
-def move_to_remote_file_server(torrent, download, remote_download_dir, host_download_dir, transmission_host_connection):
+        delete_new_download_from_transmission(transmission_client, torrent)
+
+        print("Done syncing: " + torrent.name)
+
+        add_tid_to_download(torrent, download)
+
+        # send async post api discord here later
+        post_data = {
+        'torrent': {
+            'hash_string': torrent.hash_string,
+            'name': torrent.name
+            }
+        }
+
+        # Call Discord post method via internal POST request
+        try:
+            response = requests.post('http://localhost:8000/discord_api/announce_to_discord/', json=post_data)  # Assuming you're running locally
+            if response.status_code == 200:
+                print(response.text)
+            else:
+                print(response.text)
+        except Exception as e:
+           print(f"Error occurred while calling Discord API: {str(e)}")
+    finally: 
+        disconnect_from_transmission_host(transmission_host_connection)
+
+def move_to_remote_file_server(torrent, download, transmission_obj, transmission_host_connection):
+    remote_download_dir = transmission_obj.remote_download_dir
+    host_download_dir = transmission_obj.host_download_dir
+
     release_obj = Release.objects.get(guid=download.guid.guid)
     episode_number = get_episode_num_from_torrent(torrent.name)
 
@@ -208,28 +232,28 @@ def move_to_remote_file_server(torrent, download, remote_download_dir, host_down
     command = ("mkdir -p " 
                +'\'' + remote_download_dir + release_obj.simple_title + '\'')
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-    # print("Command: " + command)
-    # print("STDOUT: " + stdout.read().decode())
-    # print("STDERR: " + stderr.read().decode())
+    print("Command: " + command)
+    print("STDOUT: " + stdout.read().decode())
+    print("STDERR: " + stderr.read().decode())
 
-    command = ("chown 1000:1000 "
+    command = ("chown 1002:1003 "
                + '\'' + remote_download_dir + release_obj.simple_title + '\''
                 )
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-    # print("Command: " + command)
-    # print("STDOUT: " + stdout.read().decode())
-    # print("STDERR: " + stderr.read().decode())
+    print("Command: " + command)
+    print("STDOUT: " + stdout.read().decode())
+    print("STDERR: " + stderr.read().decode())
 
     # command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
     # TODO write documentation about gcp
-    command = ("cp -v " 
+    command = ("cp " 
                '\'' + host_download_dir + '/' + torrent.name + '\'' 
                + ' '
                +'\'' + remote_download_dir + release_obj.simple_title + '\''
                )
-    # print("Command: " + command)
-    # print("STDOUT: " + stdout.read().decode())
-    # print("STDERR: " + stderr.read().decode())
+    print("Command: " + command)
+    print("STDOUT: " + stdout.read().decode())
+    print("STDERR: " + stderr.read().decode())
     
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
 
@@ -244,25 +268,25 @@ def move_to_remote_file_server(torrent, download, remote_download_dir, host_down
         )
 
         stdin, stdout, stderr = transmission_host_connection.exec_command(command)  
-        # print("Command: " + command)
-        # print("STDOUT: " + stdout.read().decode())
-        # print("STDERR: " + stderr.read().decode())
+        print("Command: " + command)
+        print("STDOUT: " + stdout.read().decode())
+        print("STDERR: " + stderr.read().decode())
 
-        command = ("chown 1000:1000 " 
+        command = ("chown 1002:1003 " 
         +'\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
         )
         stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-        # print("Command: " + command)
-        # print("STDOUT: " + stdout.read().decode())
-        # print("STDERR: " + stderr.read().decode())
+        print("Command: " + command)
+        print("STDOUT: " + stdout.read().decode())
+        print("STDERR: " + stderr.read().decode())
 
         command = ("chmod 0770 " 
         + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
         )
         stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-        # print("Command: " + command)
-        # print("STDOUT: " + stdout.read().decode())
-        # print("STDERR: " + stderr.read().decode())
+        print("Command: " + command)
+        print("STDOUT: " + stdout.read().decode())
+        print("STDERR: " + stderr.read().decode())
 
 def add_tid_to_download(torrent, download):
     download_from_db = Download.objects.get(guid=download.guid)
@@ -310,18 +334,28 @@ def connect_to_transmission_host(address, username, ssh_key_path, encrypted_pass
     # check if windows or linux 
 
     paramiko.util.log_to_file("paramiko.log")
+    try:
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy)
 
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        private_key = paramiko.RSAKey.from_private_key_file(os.getcwd() + ssh_key_path, password=decrypt_ssh_passphrase(encrypted_passphrase))
 
-    private_key = paramiko.RSAKey.from_private_key_file(os.getcwd() + ssh_key_path, password=decrypt_ssh_passphrase(encrypted_passphrase))
+        ssh_client.connect(address, username=username, pkey=private_key)
 
-    ssh_client.connect(address, username=username, pkey=private_key)
+        # stdin, stdout, stderr = ssh_client.exec_command('ls')
+        # print(stdout.read().decode())
 
-    return ssh_client
-    # stdin, stdout, stderr = ssh_client.exec_command('ls')
-    # print(stdout.read().decode())
-    # ssh_client.close
+        # ssh_client.close
+        return ssh_client
+    except paramiko.AuthenticationException:
+        print("SSH Authentication failed")
+        # logging.error("SSH Authentication failed")
+    except Exception as e:
+        print(f"SSH connection error: {str(e)}")
+        # logging.error(f"SSH connection error: {str(e)}")
+
+def disconnect_from_transmission_host(transmission_host_connection):
+    transmission_host_connection.close()
 
 def get_episode_num_from_torrent(torrent_name):
     match = re.search(r'-\s([\d]+(?:\.\d+)?(?:v\d+)?)\s\(', torrent_name)
