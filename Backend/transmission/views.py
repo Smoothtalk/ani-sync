@@ -71,7 +71,7 @@ class Recent_Download_Torrents(APIView):
         req_username = request.GET.get('username')
 
         if not AniList_User.objects.filter(user_name=req_username).exists():
-            return Response("Error", status=status.HTTP_400_BAD_REQUEST)
+            return Response("Error no username provided", status=status.HTTP_400_BAD_REQUEST)
         else:
             current_or_pln_user_anime = User_Anime.objects.filter(watcher__user_name=req_username, watching_status__in=["CUR", "PLN"]).values_list('show_id', flat=True)
             recently_downloaded_cur_pln_anime = Download.objects.filter(anime__in=current_or_pln_user_anime).order_by('-guid__pub_date')
@@ -104,7 +104,7 @@ class Download_Torrents(APIView):
         with ThreadPoolExecutor(max_workers=5) as executor:
             # Submit monitor_torrent tasks to the executor
             futures = [
-                executor.submit(monitor_torrent, transmission_client, torrent_download_dict)
+                executor.submit(process_torrent, transmission_client, torrent_download_dict)
                 for torrent_download_dict in torrents
             ]
 
@@ -156,9 +156,6 @@ def create_download_db_objects(retroactive_days):
 def connect_to_transmission(address, port):
     return transmission_rpc.Client(host=address, port=port)
 
-def get_host_download_dir(client):
-    return client.get_session().download_dir
-
 def add_new_download_to_transmission(client, download):
     # add to transmission
     # send move to remote file server
@@ -175,23 +172,24 @@ def add_new_download_to_transmission(client, download):
 def delete_new_download_from_transmission(client, torrent):
     client.remove_torrent(torrent.hash_string, delete_data=True)
 
-def monitor_torrent(transmission_client, torrent_download_dict):
+def process_torrent(transmission_client, torrent_download_dict):
     torrent = torrent_download_dict['torrent']
     download = torrent_download_dict['download']
+    transmission_settings = Setting.objects.get()
 
     client_torrent = transmission_client.get_torrent(torrent.hash_string)
 
     # might need to adjust this
+    # wait till torrent is done
     while(client_torrent.progress < 100.00 and (not client_torrent.seeding or client_torrent.stopped)):
         print(client_torrent.progress)
         client_torrent = transmission_client.get_torrent(torrent.hash_string)
         time.sleep(1)
 
-    transmission_obj = Setting.objects.get()
-    transmission_host_connection = connect_to_transmission_host(transmission_obj.address, transmission_obj.host_download_username, transmission_obj.ssh_key_path, transmission_obj.ssh_key_passphrase)
+    transmission_host_connection = connect_to_transmission_host(transmission_settings.address, transmission_settings.host_download_username, transmission_settings.ssh_key_path, transmission_settings.ssh_key_passphrase)
 
     try:
-        move_to_remote_file_server(torrent, download, transmission_obj, transmission_host_connection)
+        move_to_remote_file_server(torrent, download, transmission_settings, transmission_host_connection)
 
         delete_new_download_from_transmission(transmission_client, torrent)
 
@@ -229,20 +227,11 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     if episode_number is None:
         episode_number = ""
 
-    command = ("mkdir -p " 
-               +'\'' + remote_download_dir + release_obj.simple_title + '\'')
-    stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-    print("Command: " + command)
-    print("STDOUT: " + stdout.read().decode())
-    print("STDERR: " + stderr.read().decode())
+    command = ("mkdir -p " +'\'' + remote_download_dir + release_obj.simple_title + '\'')
+    stdout = execute_ssh_command(transmission_host_connection, command)
 
-    command = ("chown 1002:1003 "
-               + '\'' + remote_download_dir + release_obj.simple_title + '\''
-                )
-    stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-    print("Command: " + command)
-    print("STDOUT: " + stdout.read().decode())
-    print("STDERR: " + stderr.read().decode())
+    command = ("chown 1002:1003 "+ '\'' + remote_download_dir + release_obj.simple_title + '\'')
+    stdout = execute_ssh_command(transmission_host_connection, command)
 
     # command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
     # TODO write documentation about gcp
@@ -251,11 +240,7 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
                + ' '
                +'\'' + remote_download_dir + release_obj.simple_title + '\''
                )
-    print("Command: " + command)
-    print("STDOUT: " + stdout.read().decode())
-    print("STDERR: " + stderr.read().decode())
-    
-    stdin, stdout, stderr = transmission_host_connection.exec_command(command)
+    stdout = execute_ssh_command(transmission_host_connection, command)
 
     # need to confirm that the cp is done
     exit_status = stdout.channel.recv_exit_status()  
@@ -266,27 +251,30 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
         + ' '
         + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
         )
-
-        stdin, stdout, stderr = transmission_host_connection.exec_command(command)  
-        print("Command: " + command)
-        print("STDOUT: " + stdout.read().decode())
-        print("STDERR: " + stderr.read().decode())
+        stdout = execute_ssh_command(transmission_host_connection, command)
 
         command = ("chown 1002:1003 " 
         +'\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
         )
-        stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-        print("Command: " + command)
-        print("STDOUT: " + stdout.read().decode())
-        print("STDERR: " + stderr.read().decode())
+        stdout = execute_ssh_command(transmission_host_connection, command)
 
         command = ("chmod 0770 " 
         + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
         )
-        stdin, stdout, stderr = transmission_host_connection.exec_command(command)
-        print("Command: " + command)
-        print("STDOUT: " + stdout.read().decode())
-        print("STDERR: " + stderr.read().decode())
+        stdout = execute_ssh_command(transmission_host_connection, command)
+
+def execute_ssh_command(transmission_host_connection, command):
+    stdin, stdout, stderr = transmission_host_connection.exec_command(command)
+    exit_status = stdout.channel.recv_exit_status()
+    
+    if exit_status != 0:
+        print(f"Command failed: {command}\nSTDERR: {stderr.read().decode()}")
+        # logging.error(f"Command failed: {command}\nSTDERR: {stderr.read().decode()}")
+    
+    print("Command: " + command)
+    print("STDOUT: " + stdout.read().decode())
+    print("STDERR: " + stderr.read().decode())
+    return stdout.read().decode()
 
 def add_tid_to_download(torrent, download):
     download_from_db = Download.objects.get(guid=download.guid)
@@ -356,6 +344,9 @@ def connect_to_transmission_host(address, username, ssh_key_path, encrypted_pass
 
 def disconnect_from_transmission_host(transmission_host_connection):
     transmission_host_connection.close()
+
+def get_host_download_dir(client):
+    return client.get_session().download_dir
 
 def get_episode_num_from_torrent(torrent_name):
     match = re.search(r'-\s([\d]+(?:\.\d+)?(?:v\d+)?)\s\(', torrent_name)
