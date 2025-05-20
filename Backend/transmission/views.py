@@ -118,60 +118,6 @@ class Download_Torrents(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
 
-def create_download_db_objects(retroactive_days):
-    # get releases
-    # check which releases are not in downloads, by comparing guid
-    # for every gui not in releases make a list, create download objs and serialize save
-    # return download objs
-
-    # Find all releases where the guid is not present in the Download table
-
-    downloads = []
-
-    # Get the current time
-    now = timezone.now()
-
-    # Calculate the time three days ago
-    now = timezone.localtime(timezone.now())
-    three_days_ago = now - timedelta(days=retroactive_days)
-    last_three_days_releases = Release.objects.filter(pub_date__gte=three_days_ago)
-
-    for release in last_three_days_releases:
-        new_download = OrderedDict([('guid', None), ('anime', None), ('tid', None)])
-        
-        new_download['guid'] = release.guid
-        new_download['anime'] = release.anime.pk
-
-        serializer = download_serializaer(data=new_download)
-
-        existing_download = Download.objects.filter(guid=new_download['guid']).exists()
-
-        if serializer.is_valid():
-            if not existing_download:
-                serializer.save()
-        downloads.append(new_download)
-
-    return downloads
-
-def connect_to_transmission(address, port):
-    return transmission_rpc.Client(host=address, port=port)
-
-def add_new_download_to_transmission(client, download):
-    # add to transmission
-    # send move to remote file server
-    # make sure torrent is not already in , won't happen because we exclude releases already saved in downloads
-
-    # print(download['anime'])
-    # print(client.get_torrents())
-    # added_torrent = 
-    # print(download['link'])
-    new_torrent = client.add_torrent(download.guid.link)
-
-    return {"torrent" : new_torrent, "download" : download}
-
-def delete_new_download_from_transmission(client, torrent):
-    client.remove_torrent(torrent.hash_string, delete_data=True)
-
 def process_torrent(transmission_client, torrent_download_dict):
     torrent = torrent_download_dict['torrent']
     download = torrent_download_dict['download']
@@ -271,7 +217,58 @@ def execute_ssh_command(transmission_host_connection, command):
     print("Command: " + command)
     print("STDOUT: " + stdout.read().decode())
     print("STDERR: " + stderr.read().decode())
-    return stdout.read().decode()
+    return stdout
+
+def create_download_db_objects(retroactive_days):
+    # get releases
+    # check which releases are not in downloads, by comparing guid
+    # for every gui not in releases make a list, create download objs and serialize save
+    # return download objs
+
+    # Find all releases where the guid is not present in the Download table
+
+    downloads = []
+
+    # Get the current time
+    now = timezone.now()
+
+    # Calculate the time three days ago
+    now = timezone.localtime(timezone.now())
+    three_days_ago = now - timedelta(days=retroactive_days)
+    last_three_days_releases = Release.objects.filter(pub_date__gte=three_days_ago)
+
+    for release in last_three_days_releases:
+        new_download = OrderedDict([('guid', None), ('anime', None), ('tid', None)])
+        
+        new_download['guid'] = release.guid
+        new_download['anime'] = release.anime.pk
+
+        serializer = download_serializaer(data=new_download)
+
+        existing_download = Download.objects.filter(guid=new_download['guid']).exists()
+
+        if serializer.is_valid():
+            if not existing_download:
+                serializer.save()
+        downloads.append(new_download)
+
+    return downloads
+
+def connect_to_transmission(address, port):
+    return transmission_rpc.Client(host=address, port=port)
+
+def add_new_download_to_transmission(client, download):
+    # add to transmission
+    # send move to remote file server
+    # make sure torrent is not already in , won't happen because we exclude releases already saved in downloads
+
+    # print(download['anime'])
+    # print(client.get_torrents())
+    # added_torrent = 
+    # print(download['link'])
+    new_torrent = client.add_torrent(download.guid.link)
+
+    return {"torrent" : new_torrent, "download" : download}
 
 def add_tid_to_download(torrent, download):
     download_from_db = Download.objects.get(guid=download.guid)
@@ -338,6 +335,9 @@ def connect_to_transmission_host(address, username, ssh_key_path, encrypted_pass
     except Exception as e:
         print(f"SSH connection error: {str(e)}")
         # logging.error(f"SSH connection error: {str(e)}")
+
+def delete_new_download_from_transmission(client, torrent):
+    client.remove_torrent(torrent.hash_string, delete_data=True)
 
 def disconnect_from_transmission_host(transmission_host_connection):
     transmission_host_connection.close()
