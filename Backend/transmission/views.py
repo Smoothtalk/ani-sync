@@ -190,12 +190,9 @@ def process_torrent(transmission_client, torrent_download_dict):
 
     try:
         move_to_remote_file_server(torrent, download, transmission_host_settings, transmission_host_connection)
-
         delete_new_download_from_transmission(transmission_client, torrent)
-
-        print("Done syncing: " + torrent.name)
-
         add_tid_to_download(torrent, download)
+        print("Done syncing: " + torrent.name)
 
         # send async post api discord here later
         post_data = {
