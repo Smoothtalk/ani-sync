@@ -175,7 +175,7 @@ def delete_new_download_from_transmission(client, torrent):
 def process_torrent(transmission_client, torrent_download_dict):
     torrent = torrent_download_dict['torrent']
     download = torrent_download_dict['download']
-    transmission_settings = Setting.objects.get()
+    transmission_host_settings = Setting.objects.get()
 
     client_torrent = transmission_client.get_torrent(torrent.hash_string)
 
@@ -186,10 +186,10 @@ def process_torrent(transmission_client, torrent_download_dict):
         client_torrent = transmission_client.get_torrent(torrent.hash_string)
         time.sleep(1)
 
-    transmission_host_connection = connect_to_transmission_host(transmission_settings.address, transmission_settings.host_download_username, transmission_settings.ssh_key_path, transmission_settings.ssh_key_passphrase)
+    transmission_host_connection = connect_to_transmission_host(transmission_host_settings.address, transmission_host_settings.host_download_username, transmission_host_settings.ssh_key_path, transmission_host_settings.ssh_key_passphrase)
 
     try:
-        move_to_remote_file_server(torrent, download, transmission_settings, transmission_host_connection)
+        move_to_remote_file_server(torrent, download, transmission_host_settings, transmission_host_connection)
 
         delete_new_download_from_transmission(transmission_client, torrent)
 
