@@ -126,11 +126,20 @@ def process_torrent(transmission_client, torrent_download_dict):
 
     client_torrent = transmission_client.get_torrent(torrent.hash_string)
 
-    # might need to adjust this
+    # wait till torrent is populated with stats and files
+    while(len(client_torrent.file_stats) < 1):
+        client_torrent = update_torrent(transmission_client, torrent.hash_string)
+        time.sleep(0.1)
+
+    # get the total size of torrent
+    for file in client_torrent.get_files():
+        torrent_size = file.size
+    
     # wait till torrent is done
     while(client_torrent.progress < 100.00 and (not client_torrent.seeding or client_torrent.stopped)):
-        print(client_torrent.progress)
-        client_torrent = transmission_client.get_torrent(torrent.hash_string)
+        print_progress_bar(client_torrent.file_stats[0].bytesCompleted, torrent_size)
+
+        client_torrent = update_torrent(transmission_client, torrent.hash_string)
         time.sleep(1)
 
     transmission_host_connection = connect_to_transmission_host(transmission_host_settings.address, transmission_host_settings.host_download_username, transmission_host_settings.ssh_key_path, transmission_host_settings.ssh_key_passphrase)
@@ -141,7 +150,7 @@ def process_torrent(transmission_client, torrent_download_dict):
         add_tid_to_download(torrent, download)
         print("Done syncing: " + torrent.name)
 
-        # send async post api discord here later
+        # send async post api discord here later3
         post_data = {
         'torrent': {
             'hash_string': torrent.hash_string,
@@ -268,7 +277,6 @@ def print_progress_bar(current, total, bar_length=40):
     sys.stdout.write(f"\r{bar}")
     sys.stdout.flush()
 
-
 def create_download_db_objects(retroactive_days):
     # get releases
     # check which releases are not in downloads, by comparing guid
@@ -306,6 +314,9 @@ def create_download_db_objects(retroactive_days):
 
 def connect_to_transmission(address, port):
     return transmission_rpc.Client(host=address, port=port)
+
+def update_torrent(transmission_client, torrent_hash_string):
+    return transmission_client.get_torrent(torrent_hash_string)
 
 def add_new_download_to_transmission(client, download):
     # add to transmission
@@ -354,7 +365,7 @@ def decrypt_ssh_passphrase(encrypted_passphrase):
     env = environ.Env()
     environ.Env.read_env()
 
-    print('decrypting passphrase')
+    print('\ndecrypting passphrase')
     encryption_key = env("ssh_key_passphase_encrpt_key").encode()
     cipher_suite = Fernet(encryption_key)
     decrypted_passphrase = cipher_suite.decrypt(encrypted_passphrase).decode()
