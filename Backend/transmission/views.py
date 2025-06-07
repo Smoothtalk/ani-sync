@@ -137,7 +137,7 @@ def process_torrent(transmission_client, torrent_download_dict):
     
     # wait till torrent is done
     while(client_torrent.progress < 100.00 and (not client_torrent.seeding or client_torrent.stopped)):
-        print_progress_bar(client_torrent.file_stats[0].bytesCompleted, torrent_size)
+        print_progress_bar(client_torrent.file_stats[0].bytesCompleted, torrent_size, torrent.name)
 
         client_torrent = update_torrent(transmission_client, torrent.hash_string)
         time.sleep(1)
@@ -188,7 +188,7 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
 
     copy_progress_thread = threading.Thread(
        target=monitor_copy, 
-       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size)
+       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size, release_obj.simple_title + ' - ' + episode_number + '.mkv', )
     )
     copy_progress_thread.start()
 
@@ -237,12 +237,12 @@ def execute_ssh_command(transmission_host_connection, command):
     print("STDERR: " + stderr.read().decode())
     return stdout
 
-def monitor_copy(transmission_host_connection, remote_file_path, total_size):
+def monitor_copy(transmission_host_connection, remote_file_path, total_size, title):
     current_size = 0
     while current_size < total_size:
         time.sleep(1)  # Poll every second
         current_size = get_remote_file_size(transmission_host_connection, remote_file_path)
-        print_progress_bar(current_size, total_size)
+        print_progress_bar(current_size, total_size, title)
 
     print("\nTransfer completed!")
 
@@ -262,7 +262,7 @@ def get_remote_file_size(transmission_host_connection, remote_file_path):
     size_output = stdout.read().decode().strip()
     return int(size_output) if size_output.isdigit() else 0
 
-def print_progress_bar(current, total, bar_length=40):
+def print_progress_bar(current, total, title, bar_length=40):
     """
     Print a progress bar to the console.
 
@@ -274,7 +274,7 @@ def print_progress_bar(current, total, bar_length=40):
     progress = current / total
     block = int(bar_length * progress)
     bar = f"[{'#' * block}{'-' * (bar_length - block)}] {progress * 100:.2f}%"
-    sys.stdout.write(f"\r{bar}")
+    sys.stdout.write(f"\r{title} - {bar}")
     sys.stdout.flush()
 
 def create_download_db_objects(retroactive_days):
