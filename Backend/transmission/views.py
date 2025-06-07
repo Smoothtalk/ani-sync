@@ -6,6 +6,7 @@ import threading
 import re
 import requests
 import time
+import sys
 
 from cryptography.fernet import Fernet
 
@@ -135,7 +136,7 @@ def process_torrent(transmission_client, torrent_download_dict):
     transmission_host_connection = connect_to_transmission_host(transmission_host_settings.address, transmission_host_settings.host_download_username, transmission_host_settings.ssh_key_path, transmission_host_settings.ssh_key_passphrase)
 
     try:
-        move_to_remote_file_server(torrent, download, transmission_host_settings, transmission_host_connection)
+        move_to_remote_file_server(torrent, download, transmission_host_settings, transmission_host_connection, client_torrent.total_size)
         delete_new_download_from_transmission(transmission_client, torrent)
         add_tid_to_download(torrent, download)
         print("Done syncing: " + torrent.name)
@@ -160,7 +161,7 @@ def process_torrent(transmission_client, torrent_download_dict):
     finally: 
         disconnect_from_transmission_host(transmission_host_connection)
 
-def move_to_remote_file_server(torrent, download, transmission_obj, transmission_host_connection):
+def move_to_remote_file_server(torrent, download, transmission_obj, transmission_host_connection, torrent_size):
     remote_download_dir = transmission_obj.remote_download_dir
     host_download_dir = transmission_obj.host_download_dir
 
@@ -176,6 +177,12 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     command = ("chown 1002:1003 "+ '\'' + remote_download_dir + release_obj.simple_title + '\'')
     stdout = execute_ssh_command(transmission_host_connection, command)
 
+    copy_progress_thread = threading.Thread(
+       target=monitor_copy, 
+       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size)
+    )
+    copy_progress_thread.start()
+
     # command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
     # TODO write documentation about gcp
     command = ("cp " 
@@ -187,8 +194,10 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
 
     # need to confirm that the cp is done
     exit_status = stdout.channel.recv_exit_status()  
-    
+
     if exit_status == 0:
+        copy_progress_thread.join()
+
         command = ("mv " 
         + '\'' + remote_download_dir + release_obj.simple_title + '/' + torrent.name + '\'' 
         + ' '
@@ -218,6 +227,47 @@ def execute_ssh_command(transmission_host_connection, command):
     print("STDOUT: " + stdout.read().decode())
     print("STDERR: " + stderr.read().decode())
     return stdout
+
+def monitor_copy(transmission_host_connection, remote_file_path, total_size):
+    current_size = 0
+    while current_size < total_size:
+        time.sleep(1)  # Poll every second
+        current_size = get_remote_file_size(transmission_host_connection, remote_file_path)
+        print_progress_bar(current_size, total_size)
+
+    print("\nTransfer completed!")
+
+def get_remote_file_size(transmission_host_connection, remote_file_path):
+    """
+    Get the size of a file on the remote server.
+
+    Args:
+        transmission_host_connection: The SSH connection.
+        remote_file_path: Path to the file on the remote server.
+
+    Returns:
+        The size of the file in bytes.
+    """
+    command = f"stat -c%s '{remote_file_path}'"
+    stdin, stdout, stderr = transmission_host_connection.exec_command(command)
+    size_output = stdout.read().decode().strip()
+    return int(size_output) if size_output.isdigit() else 0
+
+def print_progress_bar(current, total, bar_length=40):
+    """
+    Print a progress bar to the console.
+
+    Args:
+        current: Current progress (in bytes).
+        total: Total size (in bytes).
+        bar_length: Length of the progress bar in characters.
+    """
+    progress = current / total
+    block = int(bar_length * progress)
+    bar = f"[{'#' * block}{'-' * (bar_length - block)}] {progress * 100:.2f}%"
+    sys.stdout.write(f"\r{bar}")
+    sys.stdout.flush()
+
 
 def create_download_db_objects(retroactive_days):
     # get releases
