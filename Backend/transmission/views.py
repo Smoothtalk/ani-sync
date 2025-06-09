@@ -115,11 +115,8 @@ class Current_File_Transfers(APIView):
         if not AniList_User.objects.filter(user_name=req_username).exists():
             return Response("Error no username provided", status=status.HTTP_400_BAD_REQUEST)
         else:
-            current_or_pln_user_anime = User_Anime.objects.filter(watcher__user_name=req_username, watching_status__in=["CUR", "PLN"]).values_list('show_id', flat=True)
-            recently_downloaded_cur_pln_anime = Download.objects.filter(anime__in=current_or_pln_user_anime).order_by('-guid__pub_date')
-            serialized_downloads = recent_download_serializer(recently_downloaded_cur_pln_anime, many=True)
 
-            return Response(serialized_downloads.data, status=status.HTTP_200_OK)
+            return Response({}, status=status.HTTP_200_OK)
 
 class Download_Torrents(APIView):
     lock = threading.Lock()
@@ -173,7 +170,7 @@ def process_torrent(transmission_client, torrent_download_dict):
         time.sleep(0.1)
 
     # get the total size of torrent
-    get_torrent_size(client_torrent)
+    torrent_size = get_torrent_size(client_torrent)
 
     # wait till torrent is done
     while(client_torrent.progress < 100.00 and (not client_torrent.seeding or client_torrent.stopped)):
