@@ -6,6 +6,7 @@ import NavBar from "./components/NavBar";
 import NewUser from "./pages/NewUser";
 import { UserProvider } from "./context/UserContext";
 import { NavBarProvider } from "./context/NavBarContext";
+import CurrentDownloads from "./pages/CurrentDownloads";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/recent" element={<RecentDownloads />} />
+          <Route path="/current" element={<CurrentDownloads />} />
           <Route path="/newuser" element={<NewUser />} />
           <Route path="*" element={<h1>Not Found</h1>} />
         </Routes>
