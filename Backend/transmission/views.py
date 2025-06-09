@@ -87,11 +87,26 @@ class Current_Torrents_Downloads(APIView):
         if not AniList_User.objects.filter(user_name=req_username).exists():
             return Response("Error no username provided", status=status.HTTP_400_BAD_REQUEST)
         else:
-            current_or_pln_user_anime = User_Anime.objects.filter(watcher__user_name=req_username, watching_status__in=["CUR", "PLN"]).values_list('show_id', flat=True)
-            recently_downloaded_cur_pln_anime = Download.objects.filter(anime__in=current_or_pln_user_anime).order_by('-guid__pub_date')
-            serialized_downloads = recent_download_serializer(recently_downloaded_cur_pln_anime, many=True)
+            resp_dict = {}
 
-            return Response(serialized_downloads.data, status=status.HTTP_200_OK)
+            transmission_obj = Setting.objects.get()
+            transmission_client = connect_to_transmission(transmission_obj.address, transmission_obj.port)
+
+            # change to this after done building, will get recent ones while building
+            # downloads = Download.objects.filter(Q(tid__isnull=True) | Q(tid=""))downloads = Download.objects.filter(Q(tid__isnull=True) | Q(tid=""))
+            last_3_releases = Release.objects.order_by('-pub_date')[:3]
+
+            # check the current torrents downloading
+            # if any of the full titles/links match our last 3 releases, further process
+            # in the further processing, get the current % and return that in a dict of simple title
+
+            for torrent in transmission_client.get_torrents():
+                for release in last_3_releases:
+                    if(release.full_title == torrent.name):
+                        episode = release.simple_title + " - " + get_episode_num_from_torrent(torrent.name)
+                        resp_dict.update({episode: torrent.percent_complete * 100})
+
+            return Response(resp_dict, status=status.HTTP_200_OK)
 
 class Current_File_Transfers(APIView):
     def get(self, request):
@@ -158,9 +173,8 @@ def process_torrent(transmission_client, torrent_download_dict):
         time.sleep(0.1)
 
     # get the total size of torrent
-    for file in client_torrent.get_files():
-        torrent_size = file.size
-    
+    get_torrent_size(client_torrent)
+
     # wait till torrent is done
     while(client_torrent.progress < 100.00 and (not client_torrent.seeding or client_torrent.stopped)):
         print_progress_bar(client_torrent.file_stats[0].bytesCompleted, torrent_size, torrent.name)
@@ -343,6 +357,15 @@ def connect_to_transmission(address, port):
 
 def update_torrent(transmission_client, torrent_hash_string):
     return transmission_client.get_torrent(torrent_hash_string)
+
+def get_torrent_size(torrent):
+    # bytes
+    torrent_size = 0
+
+    for file in torrent.get_files():
+        torrent_size = file.size
+    
+    return torrent_size
 
 def add_new_download_to_transmission(client, download):
     # add to transmission
