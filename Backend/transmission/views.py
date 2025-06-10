@@ -109,14 +109,16 @@ class Current_Torrents_Downloads(APIView):
             return Response(resp_dict, status=status.HTTP_200_OK)
 
 class Current_File_Transfers(APIView):
+
+    transfers = {}
+
     def get(self, request):
         req_username = request.GET.get('username')
 
         if not AniList_User.objects.filter(user_name=req_username).exists():
             return Response("Error no username provided", status=status.HTTP_400_BAD_REQUEST)
         else:
-
-            return Response({}, status=status.HTTP_200_OK)
+            return Response(self.transfers, status=status.HTTP_200_OK)
 
 class Download_Torrents(APIView):
     lock = threading.Lock()
@@ -182,10 +184,19 @@ def process_torrent(transmission_client, torrent_download_dict):
     transmission_host_connection = connect_to_transmission_host(transmission_host_settings.address, transmission_host_settings.host_download_username, transmission_host_settings.ssh_key_path, transmission_host_settings.ssh_key_passphrase)
 
     try:
+        # add to current transfers dict
+        release_obj = Release.objects.get(guid=download.guid.guid)
+        episode_number = get_episode_num_from_torrent(torrent.name)
+
+        Current_File_Transfers.transfers[release_obj.simple_title + ' - ' + episode_number] = 0
+
         move_to_remote_file_server(torrent, download, transmission_host_settings, transmission_host_connection, client_torrent.total_size)
         delete_new_download_from_transmission(transmission_client, torrent)
         add_tid_to_download(torrent, download)
         print("Done syncing: " + torrent.name)
+
+        # remove from current transfers dict
+        Current_File_Transfers.transfers.pop(download.anime.title + ' - ' + episode_number)
 
         # send async post api discord here later3
         post_data = {
@@ -225,7 +236,7 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
 
     copy_progress_thread = threading.Thread(
        target=monitor_copy, 
-       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size, release_obj.simple_title + ' - ' + episode_number + '.mkv', )
+       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size, release_obj.simple_title + ' - ' + episode_number, )
     )
     copy_progress_thread.start()
 
@@ -277,6 +288,7 @@ def execute_ssh_command(transmission_host_connection, command):
 def monitor_copy(transmission_host_connection, remote_file_path, total_size, title):
     current_size = 0
     while current_size < total_size:
+        Current_File_Transfers.transfers.update({title : (current_size / total_size) * 100})
         time.sleep(1)  # Poll every second
         current_size = get_remote_file_size(transmission_host_connection, remote_file_path)
         print_progress_bar(current_size, total_size, title)

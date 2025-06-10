@@ -12,22 +12,35 @@ export default function CurrentDownloadsComponent() {
 
   useEffect(() => {
     async function fetchCurrentDownload() {
-      // const res = await fetch(`${URL}${user.username}`);
-      // if (res.status === 200) {
-      //   const data = await res.json();
-      //   setAnimeData(data);
-      // } else {
-      //   //handle errors here
-      // }
+      const currentTorrentRes = await fetch(`${TorrentDownloadsURL}${user.username}`);
+      const currentFileTransfersRes = await fetch(`${FileTransferURL}${user.username}`);
+
+      if (currentTorrentRes.status === 200) {
+        const data = await currentTorrentRes.json();
+        // setAnimeData(data);
+        console.log(data)
+      } else {
+        //handle errors here
+      }
+
+      if (currentFileTransfersRes.status === 200) {
+        const data = await currentFileTransfersRes.json();
+        // setAnimeData(data);
+        console.log(data)
+      } else {
+        //handle errors here
+      }
     }
     fetchCurrentDownload();
   }, []);
 
   return (
     <div className={style.entries}>
-      {/* {animeData.map((anime) => (
+      {
+      /* {animeData.map((anime) => (
         <AnimeEntry key={anime.guid} anime={anime} />
-      ))} */}
+      ))} */
+      }
     </div>
   );
 }
