@@ -188,7 +188,7 @@ def process_torrent(transmission_client, torrent_download_dict):
         release_obj = Release.objects.get(guid=download.guid.guid)
         episode_number = get_episode_num_from_torrent(torrent.name)
 
-        Current_File_Transfers.transfers[release_obj.simple_title + ' - ' + episode_number] = 0
+        # Current_File_Transfers.transfers[release_obj.simple_title + ' - ' + episode_number] = 0
 
         move_to_remote_file_server(torrent, download, transmission_host_settings, transmission_host_connection, client_torrent.total_size)
         delete_new_download_from_transmission(transmission_client, torrent)
@@ -196,7 +196,7 @@ def process_torrent(transmission_client, torrent_download_dict):
         print("Done syncing: " + torrent.name)
 
         # remove from current transfers dict
-        Current_File_Transfers.transfers.pop(download.anime.title + ' - ' + episode_number)
+        # Current_File_Transfers.transfers.pop(download.anime.title + ' - ' + episode_number)
 
         # send async post api discord here later3
         post_data = {
@@ -288,11 +288,14 @@ def execute_ssh_command(transmission_host_connection, command):
 def monitor_copy(transmission_host_connection, remote_file_path, total_size, title):
     current_size = 0
     while current_size < total_size:
-        Current_File_Transfers.transfers.update({title : (current_size / total_size) * 100})
+        try:
+            # Current_File_Transfers.transfers.update({title : (current_size / total_size) * 100})
+            current_size = get_remote_file_size(transmission_host_connection, remote_file_path)
+            print_progress_bar(current_size, total_size, title)
+        except:
+            print("\rWaiting for file to appear...", end="")
         time.sleep(1)  # Poll every second
-        current_size = get_remote_file_size(transmission_host_connection, remote_file_path)
-        print_progress_bar(current_size, total_size, title)
-
+        
     print("\nTransfer completed!")
 
 def get_remote_file_size(transmission_host_connection, remote_file_path):
