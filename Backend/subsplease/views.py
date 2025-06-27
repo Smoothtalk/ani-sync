@@ -178,7 +178,8 @@ def get_all_cur_pln_titles():
     anime_titles = []
 
     # get titles, include currently watching and planning to watch, exclude already finished anime
-    user_anime_cur_pln_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN'))).exclude(show_id__status='FIN')
+    user_anime_cur_pln_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN')))
+    # .exclude(show_id__status='FIN')
 
     # since title is always one, simple make a list from that
     anime_titles = [user_anime.show_id.title for user_anime in user_anime_cur_pln_titles]
@@ -220,7 +221,7 @@ def get_current_season():
 
     if current_month in (1, 2):
         current_season = "Winter"
-    elif current_month is 12:
+    elif current_month in 12:
         current_year += 1
         current_season = "Winter"
     elif current_month in (3, 4, 5):

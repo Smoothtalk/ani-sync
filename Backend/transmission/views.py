@@ -139,7 +139,7 @@ class Download_Torrents(APIView):
         # from main thread spawn a new monitor thread
         # once all threads are done
         # print("torrents: ")
-        # print(torrents)
+        # print(torrents)0
         
         # Use ThreadPoolExecutor for managing threads
         with ThreadPoolExecutor(max_workers=5) as executor:
@@ -287,6 +287,10 @@ def execute_ssh_command(transmission_host_connection, command):
 
 def monitor_copy(transmission_host_connection, remote_file_path, total_size, title):
     current_size = 0
+    last_size = 0
+    unchanged_duration = 0 
+    timeout = 60
+
     while current_size < total_size:
         try:
             # Current_File_Transfers.transfers.update({title : (current_size / total_size) * 100})
@@ -294,6 +298,19 @@ def monitor_copy(transmission_host_connection, remote_file_path, total_size, tit
             print_progress_bar(current_size, total_size, title)
         except:
             print("\rWaiting for file to appear...", end="")
+
+        # Check if the size has changed
+        if current_size > last_size:
+            last_size = current_size  # Update the last known size
+            unchanged_duration = 0  # Reset the unchanged duration counter
+        else:
+            unchanged_duration += 1
+        
+        # Check if the unchanged duration exceeds the timeout
+        if unchanged_duration >= timeout:
+            print("\nTransfer failed: File size did not increase within timeout!")
+            return
+        
         time.sleep(1)  # Poll every second
         
     print("\nTransfer completed!")
