@@ -30,7 +30,7 @@ export default function Logout({ location }) {
     }
   }
 
-  const buttonText = location === "/recent" ? "Logout" : "Return";
+  const buttonText = location === "/newuser" ? "Return" : "Logout";
 
   return (
     <div className={style.logoutDiv}>

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import style from "../css/recentdownloads/recentdownloadstitlebar.module.css";
+import style from "../css/utils/utilstitlebar.module.css";
 
-export default function RecentDownloadsTitleBar() {
+export default function UtilsTitleBar() {
   const [text, setText] = useState("");
 
   useEffect(() => {
