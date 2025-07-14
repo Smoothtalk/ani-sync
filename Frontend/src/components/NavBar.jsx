@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import React, { useContext, useState } from "react";
 import Logout from "./Logout";
+import NavBarButton from "../components/NavBarButton";
 
 export default function NavBar() {
   const navigate = useNavigate();
@@ -29,9 +30,9 @@ export default function NavBar() {
               className={style.navBarImg}
             ></img>
           </button>
-          {(navBarOpen && user?.username) && <button onClick={() => navigate("/recent")}>Recent</button>}
-          {(navBarOpen && user?.username) && <button onClick={() => navigate("/current")}>Current</button>} 
-          {(navBarOpen && user?.username) && <button onClick={() => navigate("/utils")}>Utils</button>}
+          {navBarOpen && <NavBarButton buttonText="Recent" path="/recent"/>} 
+          {navBarOpen && <NavBarButton buttonText="Current" path="/current"/>} 
+          {navBarOpen && <NavBarButton buttonText="Utils" path="/utils"/>} 
           {navBarOpen && <Logout location={location.pathname} />}
         </div>
       );
