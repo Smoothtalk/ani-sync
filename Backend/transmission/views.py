@@ -28,6 +28,7 @@ from transmission.serializers import download_serializaer, recent_download_seria
 from subsplease.models import Url
 from anilist.models import User_Anime, AniList_User
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Event
 
 
 def index(request):
@@ -143,7 +144,7 @@ class Download_Torrents(APIView):
         
         # Use ThreadPoolExecutor for managing threads
         with ThreadPoolExecutor(max_workers=5) as executor:
-            # Submit monitor_torrent tasks to the executor
+            # Submit process_torrent tasks to the executor
             futures = [
                 executor.submit(process_torrent, transmission_client, torrent_download_dict)
                 for torrent_download_dict in torrents
@@ -158,6 +159,11 @@ class Download_Torrents(APIView):
                     print(f"Error occurred in thread: {str(e)}")
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
+
+class Current_File_Transfers(APIView):
+    transfers = {}
+    lock = threading.Lock()
+    line_order = []  # Order of titles added
 
 def process_torrent(transmission_client, torrent_download_dict):
     torrent = torrent_download_dict['torrent']
@@ -176,8 +182,7 @@ def process_torrent(transmission_client, torrent_download_dict):
 
     # wait till torrent is done
     while(client_torrent.progress < 100.00 and (not client_torrent.seeding or client_torrent.stopped)):
-        print_progress_bar(client_torrent.file_stats[0].bytesCompleted, torrent_size, torrent.name)
-
+        print_progress_bar_new(client_torrent.file_stats[0].bytesCompleted, torrent_size, torrent.name)
         client_torrent = update_torrent(transmission_client, torrent.hash_string)
         time.sleep(1)
 
@@ -225,6 +230,8 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     release_obj = Release.objects.get(guid=download.guid.guid)
     episode_number = get_episode_num_from_torrent(torrent.name)
 
+    completion_event = Event()
+
     if episode_number is None:
         episode_number = ""
 
@@ -234,27 +241,26 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     command = ("chown 1002:1003 "+ '\'' + remote_download_dir + release_obj.simple_title + '\'')
     stdout = execute_ssh_command(transmission_host_connection, command)
 
-    copy_progress_thread = threading.Thread(
-       target=monitor_copy, 
-       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size, release_obj.simple_title + ' - ' + episode_number, )
-    )
-    copy_progress_thread.start()
-
     # command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
     # TODO write documentation about gcp
-    command = ("cp " 
+    copy_command = ("cp " 
                '\'' + host_download_dir + '/' + torrent.name + '\'' 
                + ' '
                +'\'' + remote_download_dir + release_obj.simple_title + '\''
                )
-    stdout = execute_ssh_command(transmission_host_connection, command)
 
-    # need to confirm that the cp is done
-    exit_status = stdout.channel.recv_exit_status()  
+    #TODO move copy command into copy thread, the join will deal with not mv till done. TEST THIS SHIT
+    copy_progress_thread = threading.Thread(
+       target=monitor_copy, 
+       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size, release_obj.simple_title + ' - ' + episode_number, completion_event)
+    )
+    copy_progress_thread.start()
 
-    if exit_status == 0:
-        copy_progress_thread.join()
+    stdout = execute_ssh_command(transmission_host_connection, copy_command)
+    
+    copy_progress_thread.join()
 
+    if completion_event.is_set():
         command = ("mv " 
         + '\'' + remote_download_dir + release_obj.simple_title + '/' + torrent.name + '\'' 
         + ' '
@@ -285,17 +291,17 @@ def execute_ssh_command(transmission_host_connection, command):
     print("STDERR: " + stderr.read().decode())
     return stdout
 
-def monitor_copy(transmission_host_connection, remote_file_path, total_size, title):
+def monitor_copy(transmission_host_connection, remote_file_path, total_size, title, completion_event):
     current_size = 0
     last_size = 0
     unchanged_duration = 0 
     timeout = 60
-
+ 
     while current_size < total_size:
         try:
             # Current_File_Transfers.transfers.update({title : (current_size / total_size) * 100})
             current_size = get_remote_file_size(transmission_host_connection, remote_file_path)
-            print_progress_bar(current_size, total_size, title)
+            print_progress_bar_new(current_size, total_size, title)
         except:
             print("\rWaiting for file to appear...", end="")
 
@@ -312,8 +318,6 @@ def monitor_copy(transmission_host_connection, remote_file_path, total_size, tit
             return
         
         time.sleep(1)  # Poll every second
-        
-    print("\nTransfer completed!")
 
 def get_remote_file_size(transmission_host_connection, remote_file_path):
     """
@@ -330,6 +334,34 @@ def get_remote_file_size(transmission_host_connection, remote_file_path):
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
     size_output = stdout.read().decode().strip()
     return int(size_output) if size_output.isdigit() else 0
+
+def print_progress_bar_new(current_bytes, total_bytes, title):
+    current_mb = current_bytes / (1024 * 1024)
+    total_mb = total_bytes / (1024 * 1024) if total_bytes else 1  # Avoid division by zero
+    percent = (current_mb / total_mb) * 100
+
+    bar = f"{title[:60]:<60} [{int(percent):3}%] {current_mb:.1f}/{total_mb:.1f} MB"
+
+    with Current_File_Transfers.lock:
+        if title not in Current_File_Transfers.transfers:
+            Current_File_Transfers.transfers[title] = percent
+            Current_File_Transfers.line_order.append(title)
+        else:
+            Current_File_Transfers.transfers[title] = percent
+
+        line_index = Current_File_Transfers.line_order.index(title)
+        total_lines = len(Current_File_Transfers.line_order)
+        lines_up = total_lines - line_index
+
+        # Move up to the correct line
+        sys.stdout.write(f"\033[{lines_up}F")  # Cursor up
+        sys.stdout.write("\033[K")             # Clear line
+        sys.stdout.write(f"{bar}\n")           # Print progress bar
+
+        # Move back down to the bottom
+        if lines_up > 1:
+            sys.stdout.write(f"\033[{lines_up - 1}E")
+        sys.stdout.flush()
 
 def print_progress_bar(current, total, title, bar_length=40):
     """
