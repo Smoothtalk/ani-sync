@@ -230,8 +230,6 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     release_obj = Release.objects.get(guid=download.guid.guid)
     episode_number = get_episode_num_from_torrent(torrent.name)
 
-    completion_event = Event()
-
     if episode_number is None:
         episode_number = ""
 
@@ -252,7 +250,7 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     #TODO move copy command into copy thread, the join will deal with not mv till done. TEST THIS SHIT
     copy_progress_thread = threading.Thread(
        target=monitor_copy, 
-       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size, release_obj.simple_title + ' - ' + episode_number, completion_event)
+       args=(transmission_host_connection, (remote_download_dir + release_obj.simple_title + '/' + torrent.name), torrent_size, release_obj.simple_title + ' - ' + episode_number)
     )
     copy_progress_thread.start()
 
@@ -260,23 +258,22 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     
     copy_progress_thread.join()
 
-    if completion_event.is_set():
-        command = ("mv " 
-        + '\'' + remote_download_dir + release_obj.simple_title + '/' + torrent.name + '\'' 
-        + ' '
-        + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
-        )
-        stdout = execute_ssh_command(transmission_host_connection, command)
+    command = ("mv " 
+    + '\'' + remote_download_dir + release_obj.simple_title + '/' + torrent.name + '\'' 
+    + ' '
+    + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+    )
+    stdout = execute_ssh_command(transmission_host_connection, command)
 
-        command = ("chown 1002:1003 " 
-        +'\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
-        )
-        stdout = execute_ssh_command(transmission_host_connection, command)
+    command = ("chown 1002:1003 " 
+    +'\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+    )
+    stdout = execute_ssh_command(transmission_host_connection, command)
 
-        command = ("chmod 0770 " 
-        + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
-        )
-        stdout = execute_ssh_command(transmission_host_connection, command)
+    command = ("chmod 0770 " 
+    + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
+    )
+    stdout = execute_ssh_command(transmission_host_connection, command)
 
 def execute_ssh_command(transmission_host_connection, command):
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
@@ -291,7 +288,7 @@ def execute_ssh_command(transmission_host_connection, command):
     print("STDERR: " + stderr.read().decode())
     return stdout
 
-def monitor_copy(transmission_host_connection, remote_file_path, total_size, title, completion_event):
+def monitor_copy(transmission_host_connection, remote_file_path, total_size, title):
     current_size = 0
     last_size = 0
     unchanged_duration = 0 
