@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from . import views
+from .views import *
 
 urlpatterns = [
     path("", views.index, name="index"),
@@ -24,6 +25,7 @@ urlpatterns = [
     path("user/new_user/", views.new_user, name="new_user"),
     path("user/login/", views.login_user, name="login_user"),
     path("user/logout/", views.logout_user, name="logout_user"),
+    path("sync/", SyncAnimeView.as_view(), name="sync_anime"),
     path('admin/', admin.site.urls),
     path("transmission/", include("transmission.urls")),    
     path("anilist/", include("anilist.urls")),

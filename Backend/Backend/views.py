@@ -5,15 +5,28 @@ from django.middleware.csrf import get_token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.core.management import call_command
 
 from rest_framework.parsers import JSONParser
 from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from collections import OrderedDict
 from anilist.serializers import *
 # Create your views here.
 
 
+class SyncAnimeView(APIView):
+    def post(self, request):
+
+        username = request.user.username
+        try:
+            call_command("sync_anime", "--user", username)
+            return Response({"message": f"sync_anime of {username}"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 def index(request):
     return HttpResponse("Hello, world. You're at the Live Backend index.")
 
