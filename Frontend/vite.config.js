@@ -8,6 +8,10 @@ export default defineConfig({
     proxy: {
       "/transmission": { target: "http://localhost:8000", changeOrigin: false },
       "/anilist": { target: "http://localhost:8000", changeOrigin: false },
+      "/sync/": {
+        target: "http://localhost:8000",
+        changeOrigin: false,
+      },
       "/csrf/": {
         target: "http://localhost:8000",
         changeOrigin: false,

@@ -1,2 +1,32 @@
-.entries {
+.utilDiv {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 20%;
+  margin-right: 20%;
+  margin-bottom: 2%;
+  justify-content: center;
+}
+
+
+.syncButton {
+  align-self: center;
+  border: 2px solid #00d853;
+  border-radius: 25px;
+  padding: 10px 20px;
+  margin: 10px 0;
+  outline: none;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1); /* Adds depth */
+  transition: all 0.3s ease;
+  font-family: "Roboto", sans-serif; /* Choose a modern font */
+  font-size: 20px;
+  font-weight: bold;
+  background-color: rgba(0, 0, 0, 0);
+  color: rgb(190, 181, 181);
+}
+
+.syncButton:hover {
+  background-color: #00b4a8;
+  color: rgb(243, 239, 239);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }

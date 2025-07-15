@@ -5,30 +5,46 @@ import { useEffect } from "react";
 import React, { useContext, useState } from "react";
 
 export default function UtilsComponent() {
-  const URL = "/transmission/get_recent_downloads/?username=";
+  const URL = "/sync/";
   // const [animeData, setAnimeData] = useState([]);
   const { user, setUser } = useContext(UserContext);
 
-  useEffect(() => {
-    async function aFunction() {
-      // const res = await fetch(`${URL}${user.username}`);
-      // if (res.status === 200) {
-      //   const data = await res.json();
-      //   setAnimeData(data);
-      // } else {
-      //   //handle errors here
-      // }
+  function getCSRFToken() {
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+      const [name, value] = cookie.split("=");
+      if (name === "csrftoken") return value;
     }
-    aFunction();
+    return null;
+  }
+
+  async function syncAnime() {
+    const res = await fetch(`${URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken(),
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        username: user.username,
+      }),
+    });
+    if (res.status === 200) {
+      const data = await res.json();
+      console.log(data)
+    } else {
+      //handle errors here
+    }
+  }
+
+  useEffect(() => {
+
   }, []);
 
   return (
-    <div className={style.entries}>
-      
-      {/* {animeData.map((anime) => (
-        <AnimeEntry key={anime.guid} anime={anime} />
-      ))} */}
-
+    <div className={style.utilDiv}>
+      <button className={style.syncButton} onClick={syncAnime}>Sync</button>
     </div>
   );
 }

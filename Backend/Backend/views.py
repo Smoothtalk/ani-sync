@@ -20,7 +20,7 @@ from anilist.serializers import *
 class SyncAnimeView(APIView):
     def post(self, request):
 
-        username = request.user.username
+        username = request.data.get("username")
         try:
             call_command("sync_anime", "--user", username)
             return Response({"message": f"sync_anime of {username}"}, status=status.HTTP_200_OK)
