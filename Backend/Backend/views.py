@@ -14,6 +14,8 @@ from rest_framework.response import Response
 
 from collections import OrderedDict
 from anilist.serializers import *
+
+from transmission.views import *
 # Create your views here.
 
 

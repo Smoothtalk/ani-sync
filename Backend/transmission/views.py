@@ -7,12 +7,14 @@ import re
 import requests
 import time
 import sys
+import json
 
 from cryptography.fernet import Fernet
 
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse, HttpResponseBadRequest
 from django.utils import timezone
+from django.views.decorators.http import require_GET
 from datetime import timedelta
 
 from rest_framework import status
@@ -81,45 +83,13 @@ class Recent_Download_Torrents(APIView):
 
             return Response(serialized_downloads.data, status=status.HTTP_200_OK)
 
-class Current_Torrents_Downloads(APIView):
-    def get(self, request):
-        req_username = request.GET.get('username')
-
-        if not AniList_User.objects.filter(user_name=req_username).exists():
-            return Response("Error no username provided", status=status.HTTP_400_BAD_REQUEST)
-        else:
-            resp_dict = {}
-
-            transmission_obj = Setting.objects.get()
-            transmission_client = connect_to_transmission(transmission_obj.address, transmission_obj.port)
-
-            # change to this after done building, will get recent ones while building
-            # downloads = Download.objects.filter(Q(tid__isnull=True) | Q(tid=""))downloads = Download.objects.filter(Q(tid__isnull=True) | Q(tid=""))
-            last_3_releases = Release.objects.order_by('-pub_date')[:3]
-
-            # check the current torrents downloading
-            # if any of the full titles/links match our last 3 releases, further process
-            # in the further processing, get the current % and return that in a dict of simple title
-
-            for torrent in transmission_client.get_torrents():
-                for release in last_3_releases:
-                    if(release.full_title == torrent.name):
-                        episode = release.simple_title + " - " + get_episode_num_from_torrent(torrent.name)
-                        resp_dict.update({episode: torrent.percent_complete * 100})
-
-            return Response(resp_dict, status=status.HTTP_200_OK)
-
 class Current_File_Transfers(APIView):
 
     transfers = {}
+    lock = threading.Lock()
 
-    def get(self, request):
-        req_username = request.GET.get('username')
-
-        if not AniList_User.objects.filter(user_name=req_username).exists():
-            return Response("Error no username provided", status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(self.transfers, status=status.HTTP_200_OK)
+    # Order of titles added
+    line_order = [] 
 
 class Download_Torrents(APIView):
     lock = threading.Lock()
@@ -159,11 +129,6 @@ class Download_Torrents(APIView):
                     print(f"Error occurred in thread: {str(e)}")
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
-
-class Current_File_Transfers(APIView):
-    transfers = {}
-    lock = threading.Lock()
-    line_order = []  # Order of titles added
 
 def process_torrent(transmission_client, torrent_download_dict):
     torrent = torrent_download_dict['torrent']
@@ -337,7 +302,7 @@ def print_progress_bar_new(current_bytes, total_bytes, title):
     total_mb = total_bytes / (1024 * 1024) if total_bytes else 1  # Avoid division by zero
     percent = (current_mb / total_mb) * 100
 
-    bar = f"{title[:60]:<60} [{int(percent):3}%] {current_mb:.1f}/{total_mb:.1f} MB"
+    bar = f"{title[:100]:<100} [{int(percent):3}%] {current_mb:.1f}/{total_mb:.1f} MB"
 
     with Current_File_Transfers.lock:
         if title not in Current_File_Transfers.transfers:
@@ -345,7 +310,6 @@ def print_progress_bar_new(current_bytes, total_bytes, title):
             Current_File_Transfers.line_order.append(title)
         else:
             Current_File_Transfers.transfers[title] = percent
-
         line_index = Current_File_Transfers.line_order.index(title)
         total_lines = len(Current_File_Transfers.line_order)
         lines_up = total_lines - line_index
@@ -521,3 +485,50 @@ def get_episode_num_from_torrent(torrent_name):
 
 def get_download_db_objects():
     pass    # ensure /etc/ssh/sshd_config PubkeyAuthentication yes 
+
+@require_GET
+def current_torrents_downloads(request):
+    req_username = request.GET.get('username')
+
+    if not req_username or not AniList_User.objects.filter(user_name=req_username).exists():
+        return HttpResponseBadRequest("Error: Invalid or missing username")
+
+    def event_stream():
+        transmission_obj = Setting.objects.get()
+        transmission_client = connect_to_transmission(transmission_obj.address, transmission_obj.port)
+
+        last_3_releases = Release.objects.order_by('-pub_date')[:3]
+
+        try:
+            while True:
+                resp_dict = {}
+
+                for torrent in transmission_client.get_torrents():
+                    for release in last_3_releases:
+                        if release.full_title == torrent.name:
+                            episode = release.simple_title + " - " + get_episode_num_from_torrent(torrent.name)
+                            resp_dict[episode] = round(torrent.percent_complete * 100, 2)
+
+                if not resp_dict:
+                # No matching torrents, stop streaming
+                    raise GeneratorExit()
+                
+                yield f"data: {json.dumps(resp_dict)}\n\n"
+                time.sleep(1)
+        except GeneratorExit:
+            print("Client disconnected")
+            return HttpResponse("A", content_type='text/event-stream')
+
+    return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+
+@require_GET
+def current_file_transfers(request):
+    req_username = request.GET.get('username')
+
+    if not req_username or not AniList_User.objects.filter(user_name=req_username).exists():
+        return HttpResponseBadRequest("Error: Invalid or missing username")
+    
+    if not AniList_User.objects.filter(user_name=req_username).exists():
+        return HttpResponse("Error no username provided", status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return HttpResponse(Current_File_Transfers.transfers, status=status.HTTP_200_OK)
