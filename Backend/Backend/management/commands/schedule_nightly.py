@@ -30,6 +30,6 @@ class Command(BaseCommand):
                 name=run_nightly_name,  # Unique name for this schedule
                 sync_user=sync_username 
             )
-            self.stdout.write(self.style.SUCCESS('Added Anime and User Anime task for {sync_username} successfully!'))
+            self.stdout.write(self.style.SUCCESS(f'Added Anime and User Anime task for {sync_username} successfully!'))
         else:
             self.stdout.write(self.style.WARNING('run_nightly is already scheduled.'))
