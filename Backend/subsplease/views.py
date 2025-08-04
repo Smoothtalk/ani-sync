@@ -6,7 +6,7 @@ from nyaapy import anime_site
 from Levenshtein import ratio
 from subsplease.models import *
 from subsplease.serializers import release_serializer
-from anilist.models import User_Anime, Anime
+from anilist.models import User_Anime, Anime, AniList_User
 
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -36,6 +36,9 @@ class SubsPlease(APIView):
     feedparser.USER_AGENT = user_agent
 
     def get(self, request):
+        # TODO get the user(username) from the request, pass it on the the respective functions
+        req_username = request.GET.get('username')
+
         # get the releases from urls
         # TODO handle multiple URLS, only support for 1 now
 
@@ -47,7 +50,7 @@ class SubsPlease(APIView):
             feed = feedparser.parse(url.feed_url)
             print("Status of RSS Feed: " + str(feed.status))
             releases = feed.get('entries')
-            serialized_releases = create_releases_db_objects(releases)
+            serialized_releases = create_releases_db_objects(releases, req_username)
 
         return Response(serialized_releases, status=status.HTTP_200_OK)
     
@@ -71,7 +74,7 @@ class Nyaa(APIView):
 
         return Response([], status=status.HTTP_200_OK)
 
-def create_releases_db_objects(releases_str):
+def create_releases_db_objects(releases_str, username):
     # Add new releases to db
     # make sure to add it to the anime too
     # might need fuzzy matching
@@ -79,7 +82,9 @@ def create_releases_db_objects(releases_str):
 
     serialized_releases = []
     releases_arr = []
-    anime_titles = get_all_cur_pln_titles()
+    
+    #TODO change this to use the currently logged in user or the user specified by the syncing anime (it should be the same)
+    anime_titles = get_all_cur_pln_titles(username)
 
     for release in releases_str:
         simple_title = trim_simple_title(release['tags'][0]['term'])
@@ -174,18 +179,23 @@ def find_anilist_showid_from_title(release_title, anime_titles):
 def get_anime_obj_from_anilist_id(anilist_id):
     return Anime.objects.get(show_id=anilist_id)
 
-def get_all_cur_pln_titles():
+def get_all_cur_pln_titles(username):
     anime_titles = []
 
+    if not AniList_User.objects.filter(user_name=username).exists():
+        return "Username not found"
+    else:
+        username_id = AniList_User.objects.get(user_name=username).id
+
     # get titles, include currently watching and planning to watch, exclude already finished anime
-    user_anime_cur_pln_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN')))
+    user_anime_cur_pln_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN')) & Q(watcher=username_id))
     # .exclude(show_id__status='FIN')
 
     # since title is always one, simple make a list from that
     anime_titles = [user_anime.show_id.title for user_anime in user_anime_cur_pln_titles]
 
     #get alt_titles
-    user_anime_cur_pln_alt_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN')))
+    user_anime_cur_pln_alt_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN')) & Q(watcher=username_id))
     
     # add alt titles, if there are more than one, flatten them
     anime_alt_titles = list(itertools.chain.from_iterable(
@@ -197,7 +207,7 @@ def get_all_cur_pln_titles():
     anime_alt_titles = [title for title in anime_alt_titles if title]
     
     #TODO test when custom title is included
-    user_anime_cur_pln_custom_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN')))
+    user_anime_cur_pln_custom_titles = User_Anime.objects.filter((Q(watching_status='CUR') | Q(watching_status='PLN')) & Q(watcher=username_id))
     anime_custom_titles = list(itertools.chain.from_iterable(
         [user_anime.custom_titles for user_anime in user_anime_cur_pln_custom_titles if user_anime.custom_titles]
     ))

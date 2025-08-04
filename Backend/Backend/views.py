@@ -1,3 +1,6 @@
+import io
+import re
+
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -23,9 +26,21 @@ class SyncAnimeView(APIView):
     def post(self, request):
 
         username = request.data.get("username")
+        outputBuffer = io.StringIO()
+
         try:
-            call_command("sync_anime", "--user", username)
-            return Response({"message": f"sync_anime of {username}"}, status=status.HTTP_200_OK)
+            call_command("sync_anime", "--user", username, stdout=outputBuffer)
+            
+            output_text = outputBuffer.getvalue()
+
+            clean_text = remove_ansi_sequences(output_text)
+            split_text = clean_text.split('\n')
+
+            return Response({
+                "message": f"sync_anime of {username}",
+                "output": split_text
+                }, status=status.HTTP_200_OK)
+            # return Response({"message": f"sync_anime of {username}"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
@@ -103,3 +118,7 @@ def logout_user(request):
 def serve_csrf_cookie(request):
     token = get_token(request)
     return JsonResponse({"csrfToken": token})
+
+def remove_ansi_sequences(text):
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', text)
