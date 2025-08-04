@@ -5,7 +5,7 @@ from django_q.tasks import schedule
 from Backend.tasks import run_sync_command  # Import the task function
 
 class Command(BaseCommand):
-    help = 'Schedules the sync_anime_myo task every 30 minutes'
+    help = 'Schedules the sync_anime_{sync_username} task every 30 minutes'
 
     def add_arguments(self, parser):
         parser.add_argument(
