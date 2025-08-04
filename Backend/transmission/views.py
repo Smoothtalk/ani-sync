@@ -199,10 +199,12 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
         episode_number = ""
 
     command = ("mkdir -p " +'\'' + remote_download_dir + release_obj.simple_title + '\'')
-    stdout = execute_ssh_command(transmission_host_connection, command)
+    stdout, exit_status = execute_ssh_command(transmission_host_connection, command)
 
     command = ("chown 1002:1003 "+ '\'' + remote_download_dir + release_obj.simple_title + '\'')
-    stdout = execute_ssh_command(transmission_host_connection, command)
+    stdout, exit_status = execute_ssh_command(transmission_host_connection, command)
+
+    wait_until_file_exists(transmission_host_connection, host_download_dir + '/' + torrent.name)
 
     # command = "cp \'" + host_download_dir + '/' + torrent.name + "\' \'" + remote_download_dir + release_obj.simple_title + '\''
     # TODO write documentation about gcp
@@ -219,7 +221,7 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     )
     copy_progress_thread.start()
 
-    stdout = execute_ssh_command(transmission_host_connection, copy_command)
+    stdout, exit_status = execute_ssh_command(transmission_host_connection, copy_command)
     
     copy_progress_thread.join()
 
@@ -228,17 +230,17 @@ def move_to_remote_file_server(torrent, download, transmission_obj, transmission
     + ' '
     + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
     )
-    stdout = execute_ssh_command(transmission_host_connection, command)
+    stdout, exit_status = execute_ssh_command(transmission_host_connection, command)
 
     command = ("chown 1002:1003 " 
     +'\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
     )
-    stdout = execute_ssh_command(transmission_host_connection, command)
+    stdout, exit_status = execute_ssh_command(transmission_host_connection, command)
 
     command = ("chmod 0770 " 
     + '\'' + remote_download_dir + release_obj.simple_title + '/' + release_obj.simple_title + ' - ' + episode_number + '.mkv' + '\''
     )
-    stdout = execute_ssh_command(transmission_host_connection, command)
+    stdout, exit_status = execute_ssh_command(transmission_host_connection, command)
 
 def execute_ssh_command(transmission_host_connection, command):
     stdin, stdout, stderr = transmission_host_connection.exec_command(command)
@@ -251,7 +253,7 @@ def execute_ssh_command(transmission_host_connection, command):
     print("Command: " + command)
     print("STDOUT: " + stdout.read().decode())
     print("STDERR: " + stderr.read().decode())
-    return stdout
+    return stdout, exit_status
 
 def monitor_copy(transmission_host_connection, remote_file_path, total_size, title):
     current_size = 0
@@ -280,6 +282,21 @@ def monitor_copy(transmission_host_connection, remote_file_path, total_size, tit
             return
         
         time.sleep(1)  # Poll every second
+
+def wait_until_file_exists(transmission_host_connection, remote_path, timeout=180, interval=1):
+     # Wait until a file exists at the given path. Times out after `timeout` seconds.
+    
+    print('remote_path: ', remote_path)
+
+    elapsed = 0
+    while elapsed < timeout:
+        _, exit_status = execute_ssh_command(transmission_host_connection, f"test -f '{remote_path}'")
+        if exit_status == 0:
+            return True
+        time.sleep(interval)
+        elapsed += interval
+
+    raise FileNotFoundError(f"Remote file not found after {timeout} seconds: {remote_path}")
 
 def get_remote_file_size(transmission_host_connection, remote_file_path):
     """
