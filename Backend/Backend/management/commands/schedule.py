@@ -31,6 +31,6 @@ class Command(BaseCommand):
                 name=sync_anime_name,  # Unique name for this schedule
                 sync_user=sync_username 
             )
-            self.stdout.write(self.style.SUCCESS('Scheduled sync_anime_myo successfully!'))
+            self.stdout.write(self.style.SUCCESS('Scheduled sync_anime_{sync_username} successfully!'))
         else:
-            self.stdout.write(self.style.WARNING('sync_anime_myo is already scheduled.'))
+            self.stdout.write(self.style.WARNING('sync_anime_{sync_username} is already scheduled.'))
