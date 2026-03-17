@@ -87,6 +87,11 @@ def create_releases_db_objects(releases_str, username):
     anime_titles = get_all_cur_pln_titles(username)
 
     for release in releases_str:
+        
+        # Check if it's a batch release immediately
+        if "batch" in release['title'].lower():
+            continue  # Skip this release entirely
+
         simple_title = trim_simple_title(release['tags'][0]['term'])
         django_datetime = convert_datetime(release['published'])
 
