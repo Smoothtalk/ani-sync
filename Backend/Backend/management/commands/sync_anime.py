@@ -28,7 +28,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Starting to fetch data...'))
 
-        get_magnet_links = requests.get('http://localhost:8000/subsplease/get_magnet_links/')
+        get_magnet_links = requests.get(f'http://localhost:8000/subsplease/get_magnet_links/?username={username}')
         magnet_links_data = get_magnet_links.json()
 
         self.stdout.write(self.style.WARNING('Done getting magnet links'))

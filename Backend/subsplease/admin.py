@@ -6,7 +6,7 @@ from subsplease.models import Url, Release
 class Release_Admin(admin.ModelAdmin):
     list_display = ["full_title", "pub_date"]
 
-    search_fields = ["anime__title"]
+    search_fields = ["anime__title", "guid"]
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
