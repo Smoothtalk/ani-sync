@@ -30,9 +30,10 @@ export default function NavBar() {
               className={style.navBarImg}
             ></img>
           </button>
-          {navBarOpen && <NavBarButton buttonText="Recent" path="/recent"/>} 
-          {navBarOpen && <NavBarButton buttonText="Current" path="/current"/>} 
-          {navBarOpen && <NavBarButton buttonText="Utils" path="/utils"/>} 
+          {navBarOpen && <NavBarButton buttonText="Recent"      path="/recent"/>} 
+          {navBarOpen && <NavBarButton buttonText="User Anime"  path="/useranime"/>} 
+          {navBarOpen && <NavBarButton buttonText="Current"     path="/current"/>} 
+          {navBarOpen && <NavBarButton buttonText="Utils"       path="/utils"/>} 
           {navBarOpen && <Logout location={location.pathname} />}
         </div>
       );
