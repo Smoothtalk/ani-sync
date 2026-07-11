@@ -7,4 +7,5 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("get_anime_list/", AnimeList.as_view(), name="get_anime_list"),
     path("get_anime_icon/", views.anime_icon, name="get_anime_icon"),
+    path("get_user_anime/", views.get_user_anime, name="get_user_anime"),
 ]

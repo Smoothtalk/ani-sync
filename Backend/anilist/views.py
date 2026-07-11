@@ -1,9 +1,13 @@
 from django.http import HttpResponse
 from django.db.models import Case, When, Value, IntegerField, Q
+from django.views.decorators.http import require_GET
 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 
 from anilist.models import *
 from anilist.serializers import *
@@ -16,6 +20,7 @@ import json
 def index(request):
     return HttpResponse("Hello, world. You're at the anilist index.")
 
+@api_view(['GET'])
 def anime_icon(request):
   url = "https://graphql.anilist.co"
   query = '''
@@ -50,6 +55,20 @@ def anime_icon(request):
       anime_in_db.save()
 
       return HttpResponse(icon_url, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_user_anime(request):
+    """
+    Retrieves the list of anime for the currently logged-in user.
+    """
+    user = request.GET.get('username')
+    # Filter the UserAnime model by the supplied user
+    user_anime_list = User_Anime.objects.filter(watcher__user_name=user)
+
+    # Serialize the data to include fields like 'title' and 'animeicon'
+    serializer = user_anime_serializer(user_anime_list, many=True)
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 class AnimeList(APIView):
     
