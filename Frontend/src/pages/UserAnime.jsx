@@ -47,7 +47,7 @@ export default function UserAnime() {
 
   return (
     <div className={style.container}>
-      <h1>Welcome, {user?.username}</h1>
+      <h1 className={style.welcome_message}>Welcome, {user?.username}</h1>
       
       <select 
         className={style.selectBox}
@@ -67,7 +67,7 @@ export default function UserAnime() {
         <div className={style.details}>
           {/* Using your custom AnimeIcon component */}
           <AnimeIcon icon_url={selectedAnime.icon_url} anime_id={selectedAnime.show_id} />
-          <p>{selectedAnime.anime_title}</p>
+          <p className={style.anime_title}>{selectedAnime.anime_title}</p>
         </div>
       )}
     </div>
